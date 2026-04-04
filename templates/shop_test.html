@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>WebGL Test</title>
+<style>
+body{margin:0;overflow:hidden;background:#d2cdbd;font-family:'Space Grotesk',sans-serif}
+canvas{position:fixed;inset:0}
+#info{position:fixed;top:10px;left:10px;z-index:100;background:rgba(0,0,0,0.7);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px}
+#loading{position:fixed;inset:0;z-index:9999;background:#d2cdbd;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;color:#333}
+.load-title{font-size:24px;font-weight:700;letter-spacing:3px;margin-top:12px}
+#log{position:fixed;bottom:10px;left:10px;right:10px;z-index:200;background:rgba(0,0,0,0.85);color:#0f0;font-family:monospace;font-size:12px;padding:10px;border-radius:8px;max-height:200px;overflow-y:auto}
+#log div{margin:2px 0}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div style="font-size:48px">🛍️</div>
+  <div class="load-title">Mall.</div>
+  <div style="font-size:13px;color:#666;margin-top:8px" id="status">Initializing...</div>
+</div>
+<div id="info">
+  <div>Three.js: <span id="three-status" style="color:#f00">loading</span></div>
+  <div>GLB: <span id="glb-status" style="color:#f00">pending</span></div>
+  <div>Texture: <span id="tex-status" style="color:#f00">pending</span></div>
+  <div>Error: <span id="err-status" style="color:#f00">none</span></div>
+</div>
+<div id="log"><div>=== Log ===</div></div>
+<script src="/static/3droom/three/three.min.js"></script>
+<script src="/static/3droom/three/OrbitControls.js"></script>
+<script src="/static/3droom/three/GLTFLoader.js"></script>
+<script>
+function log(msg){
+  var d=document.createElement('div');
+  d.textContent=new Date().toISOString().slice(11,19)+' '+msg;
+  document.getElementById('log').appendChild(d);
+  document.getElementById('log').scrollTop=document.getElementById('log').scrollHeight;
+}
+function setStatus(id,msg,ok){
+  var el=document.getElementById(id);
+  el.textContent=msg;
+  el.style.color=ok?'#0f0':'#f00';
+}
+log('Page loaded');
+log('THREE version: '+THREE.REVISION);
+
+// Renderer
+var canvas=document.createElement('canvas');
+document.body.appendChild(canvas);
+var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.0;
+renderer.setClearColor(0xd2cdbd);
+log('Renderer created');
+
+setStatus('three-status','r'+THREE.REVISION,true);
+
+// Scene
+var scene=new THREE.Scene();
+scene.background=new THREE.Color(0xd2cdbd);
+scene.fog=new THREE.Fog(0xffecce,0,650);
+log('Scene created');
+
+// Camera - Orthographic like mall-map
+var frustumSize=100;
+var aspect=window.innerWidth/window.innerHeight;
+var camera=new THREE.OrthographicCamera(
+  -frustumSize*aspect/2,frustumSize*aspect/2,
+  frustumSize/2,-frustumSize/2,0,1000
+);
+camera.position.set(-86.8,40.0,-44);
+camera.lookAt(0,0,0);
+log('Camera created: OrthographicCamera');
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff,1.0));
+var sun=new THREE.DirectionalLight(0xffffff,0.9);
+sun.position.set(80,150,80);
+scene.add(sun);
+log('Lights added');
+
+// Controls
+var controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+controls.dampingFactor=0.05;
+controls.autoRotate=true;
+controls.autoRotateSpeed=0.3;
+controls.minPolarAngle=0;
+controls.maxPolarAngle=Math.PI/2;
+controls.target.set(0,0,0);
+log('Controls created');
+
+// Simple fallback mesh to verify rendering works
+var geo=new THREE.BoxGeometry(10,10,10);
+var mat=new THREE.MeshStandardMaterial({color:0xe85a30});
+var cube=new THREE.Mesh(geo,mat);
+cube.position.set(0,5,0);
+cube.castShadow=true;
+scene.add(cube);
+log('Cube added');
+
+// Floor
+var floorGeo=new THREE.PlaneGeometry(200,200);
+var floorMat=new THREE.MeshStandardMaterial({color:0xd4c896,roughness:0.9});
+var floor=new THREE.Mesh(floorGeo,floorMat);
+floor.rotation.x=-Math.PI/2;
+floor.receiveShadow=true;
+scene.add(floor);
+log('Floor added');
+
+setStatus('tex-status','fallback mode',true);
+
+// Load GLB
+log('Loading mall.glb...');
+setStatus('glb-status','loading',false);
+var loader=new THREE.GLTFLoader();
+loader.load(
+  '/static/3droom/assets/mall.glb',
+  function(gltf){
+    log('GLB loaded, children: '+gltf.scene.children.length);
+    setStatus('glb-status','loaded',true);
+    var model=gltf.scene;
+    model.position.set(0,-1,0);
+    model.scale.setScalar(2);
+    scene.add(model);
+    log('Mall model added to scene');
+
+    // Load texture
+    log('Loading baked texture...');
+    setStatus('tex-status','loading',false);
+    new THREE.TextureLoader().load(
+      '/static/3droom/assets/baked.webp',
+      function(bakedTex){
+        log('Texture loaded');
+        setStatus('tex-status','loaded',true);
+        bakedTex.flipY=false;
+        bakedTex.encoding=THREE.sRGBEncoding;
+        model.traverse(function(child){
+          if(!child.isMesh||!child.material)return;
+          log('Mesh: '+child.name+' type: '+child.material.type);
+          if(child.name==='light'){
+            child.material=new THREE.MeshBasicMaterial({color:0xfaf9ed});
+          } else {
+            child.material=new THREE.MeshBasicMaterial({map:bakedTex});
+          }
+        });
+        log('Texture applied');
+        doneLoading();
+      },null,
+      function(e){
+        log('Texture error: '+e);
+        setStatus('tex-status','error',false);
+        doneLoading();
+      }
+    );
+  },
+  function(progress){
+    if(progress.lengthComputable){
+      log('GLB progress: '+(progress.loaded/progress.total*100).toFixed(0)+'%');
+    }
+  },
+  function(e){
+    log('GLB error: '+e);
+    setStatus('glb-status','error',false);
+    setStatus('err-status','GLB failed - using fallback',false);
+    doneLoading();
+  }
+);
+
+function doneLoading(){
+  setTimeout(function(){
+    var e=document.getElementById('loading');
+    if(e){e.style.opacity='0';setTimeout(function(){e.remove()},800);}
+  },500);
+}
+
+// Resize
+window.addEventListener('resize',function(){
+  aspect=window.innerWidth/window.innerHeight;
+  camera.left=-frustumSize*aspect/2;
+  camera.right=frustumSize*aspect/2;
+  camera.top=frustumSize/2;
+  camera.bottom=-frustumSize/2;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// Animation
+(function loop(){
+  requestAnimationFrame(loop);
+  controls.update();
+  renderer.render(scene,camera);
+})();
+log('Animation started');
+</script>
+</body>
+</html>

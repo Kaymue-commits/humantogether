@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI World · 共生境</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080818;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;color:#fff;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,#1a1040 0%,#080818 70%);z-index:0}
+.t{position:relative;z-index:1;text-align:center;margin-bottom:40px}
+.t h1{font-size:clamp(28px,6vw,52px);font-weight:700;letter-spacing:6px;background:linear-gradient(135deg,#fff,#a0a0ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px}
+.t p{font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:2px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;width:min(800px,92vw);position:relative;z-index:1}
+.c{display:block;border-radius:20px;overflow:hidden;text-decoration:none;transition:transform 0.25s,box-shadow 0.25s;aspect-ratio:3/4;position:relative}
+.c:hover{transform:translateY(-6px) scale(1.02)}
+.c img{width:100%;height:100%;object-fit:cover;display:block}
+.c .ov{position:absolute;bottom:0;left:0;right:0;padding:16px 14px;background:linear-gradient(transparent,rgba(0,0,0,0.88));display:flex;flex-direction:column;gap:3px}
+.c .nm{font-size:clamp(14px,3vw,20px);font-weight:700;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,0.7)}
+.c .ty{font-size:clamp(10px,2vw,13px);color:rgba(255,255,255,0.72)}
+@media(max-width:500px){.g{grid-template-columns:repeat(2,1fr);gap:12px}}
+</style>
+</head>
+<body>
+<div class="t"><h1>AI WORLD</h1><p>选择你的伙伴 · 进入专属空间</p></div>
+<div class="g">
+<a class="c" href="/room_3d/bedroom"><img src="/static/3droom/assets/rooms_v2/baked_bedroom.jpg"><div class="ov"><div class="nm">🌙 Luna</div><div class="ty">月光卧室 · 温暖治愈</div></div></a>
+<a class="c" href="/room_3d/office"><img src="/static/3droom/assets/rooms_v2/baked_office.jpg"><div class="ov"><div class="nm">🌊 Kai</div><div class="ty">极客工坊 · 冷静理性</div></div></a>
+<a class="c" href="/room_3d/living"><img src="/static/3droom/assets/rooms_v2/baked_living.jpg"><div class="ov"><div class="nm">⭐ Nova</div><div class="ty">星光客厅 · 充满能量</div></div></a>
+<a class="c" href="/room_3d/tea"><img src="/static/3droom/assets/rooms_v2/baked_tea.jpg"><div class="ov"><div class="nm">🌿 Milo</div><div class="ty">禅意茶室 · 平和宁静</div></div></a>
+<a class="c" href="/room_3d/reading"><img src="/static/3droom/assets/rooms_v2/baked_reading.jpg"><div class="ov"><div class="nm">📚 Sage</div><div class="ty">智慧书院 · 博古通今</div></div></a>
+</div>
+</body>
+</html>

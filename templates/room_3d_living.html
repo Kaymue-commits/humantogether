@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星光客厅 · 共生境</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#1a1208;cursor:grab;font-family:"Inter",sans-serif}
+canvas{position:fixed;inset:0;display:block}
+a{text-decoration:none;color:inherit}
+#ui{position:fixed;inset:0;z-index:100;pointer-events:none}
+#topbar{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:20px 28px;background:linear-gradient(to bottom,rgba(1a1208,0.9),transparent)}
+#topbar h1{font-family:"Space Grotesk",sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,0.4)}
+#topbar .sub{font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px;letter-spacing:1px}
+#topbar .back{pointer-events:auto;padding:10px 20px;border-radius:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:13px;font-family:"Space Grotesk",sans-serif;font-weight:600;letter-spacing:1px;cursor:pointer;backdrop-filter:blur(8px);transition:background 0.2s}
+#topbar .back:hover{background:rgba(255,255,255,0.25)}
+#card{position:absolute;bottom:0;left:0;right:0;padding:24px 32px 28px;background:linear-gradient(to top,rgba(1a1208,0.95) 0%,transparent 100%);display:flex;align-items:flex-end;justify-content:space-between}
+#card .rn{font-family:"Space Grotesk",sans-serif;font-size:40px;font-weight:700;color:#fff;letter-spacing:-0.5px;text-shadow:0 2px 12px rgba(0,0,0,0.4)}
+#card .rt{font-size:13px;color:rgba(255,255,255,0.7);margin-top:5px;letter-spacing:0.5px}
+#card .ac{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.abtn{padding:12px 22px;border-radius:10px;border:none;cursor:pointer;font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;pointer-events:auto;transition:all 0.2s}
+.abtn-p{background:#fff;color:#333}
+.abtn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.abtn-s{background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.35);backdrop-filter:blur(8px)}
+.abtn-s:hover{background:rgba(255,255,255,0.28)}
+#hint{position:fixed;bottom:200px;left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:0.5px;pointer-events:none;z-index:50;font-family:"Inter",sans-serif}
+#loading{position:fixed;inset:0;z-index:9999;background:#1a1208;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s}
+#loading.fade{opacity:0;pointer-events:none}
+#loading .ic{font-size:52px;margin-bottom:14px}
+#loading .ti{font-family:"Space Grotesk",sans-serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:4px;text-shadow:0 2px 12px rgba(0,0,0,0.3)}
+#loading .su{font-size:13px;color:rgba(255,255,255,0.6);margin-top:8px;letter-spacing:1px}
+.lb{width:140px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px;margin-top:24px;overflow:hidden}
+.lb div{height:100%;background:#fff;border-radius:2px;animation:lb 2s ease-out forwards}
+@keyframes lb{from{width:0}to{width:100%}}
+</style>
+</head>
+<body>
+<div id="loading"><div class="ic">⭐</div><div class="ti">星光客厅</div><div class="su">加载3D房间中...</div><div class="lb"><div></div></div></div>
+<canvas id="canvas"></canvas>
+<div id="ui">
+  <div id="topbar">
+    <div><h1>星光客厅</h1><div class="sub">共生境 · 3D companion world</div></div>
+    <a href="/ai-world" class="back">返回商店</a>
+  </div>
+  <div id="card">
+    <div>
+      <div class="rn">⭐ 星光客厅</div>
+      <div class="rt">客厅</div>
+    </div>
+    <div class="ac">
+      <button class="abtn abtn-p" onclick="enterRoom()">进入房间</button>
+      <button class="abtn abtn-s" onclick="toggleLight()">切换氛围</button>
+    </div>
+  </div>
+</div>
+<div id="hint">拖动旋转 · 滚轮缩放</div>
+<script src="/static/3droom/three/three.min.js"></script>
+<script src="/static/3droom/three/OrbitControls.js"></script>
+<script src="/static/3droom/three/GLTFLoader.js"></script>
+<script>
+var T=window.THREE;
+var sc=new T.Scene();sc.background=new T.Color(0x1a1208);sc.fog=new T.Fog(0x1a1208,0,400);
+var cam=new T.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);cam.position.set(0,120,180);cam.lookAt(0,0,0);
+var ren=new T.WebGLRenderer({canvas:document.getElementById("canvas"),antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setSize(innerWidth,innerHeight);ren.shadowMap.enabled=true;ren.shadowMap.type=T.PCFSoftShadowMap;ren.outputEncoding=T.sRGBEncoding;
+var ctrl=new T.OrbitControls(cam,ren.domElement);ctrl.enableDamping=true;ctrl.dampingFactor=0.05;ctrl.minDistance=40;ctrl.maxDistance=300;ctrl.maxPolarAngle=Math.PI/2.1;ctrl.target.set(0,30,0);
+var amb=new T.AmbientLight(0xffffff,0.5);sc.add(amb);
+var sun=new T.DirectionalLight(0xffffff,0.9);sun.position.set(80,150,80);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=0.1;sun.shadow.camera.far=500;sun.shadow.camera.left=-200;sun.shadow.camera.right=200;sun.shadow.camera.top=200;sun.shadow.camera.bottom=-200;sun.shadow.bias=-0.001;sc.add(sun);
+var night=false;
+function toggleLight(){night=!night;if(night){amb.color.setHex(0x8090c0);amb.intensity=0.3;sun.color.setHex(0xa0c0ff);sun.intensity=0.2;sc.background.setHex(0x0a0a1a);sc.fog.setHex(0x0a0a1a);ren.toneMappingExposure=0.8;}else{amb.color.setHex(0xffffff);amb.intensity=0.5;sun.color.setHex(0xffffff);sun.intensity=0.9;sc.background.setHex(0x1a1208);sc.fog.setHex(0x1a1208);ren.toneMappingExposure=1.0;}}
+var ld=new T.GLTFLoader();ld.load("/static/3droom/assets/rooms_v2/room_living.glb",function(g){var m=g.scene;m.scale.setScalar(80);m.traverse(function(c){if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});sc.add(m);new T.TextureLoader().load("/static/3droom/assets/rooms_v2/baked_living.jpg",function(t){t.flipY=false;t.encoding=T.sRGBEncoding;m.traverse(function(c){if(c.isMesh&&c.material)c.material=new T.MeshBasicMaterial({map:t});});});setTimeout(function(){var e=document.getElementById("loading");if(e){e.classList.add("fade");setTimeout(function(){e.remove()},800);}},1200);},null,function(){setTimeout(function(){var e=document.getElementById("loading");if(e){e.classList.add("fade");setTimeout(function(){e.remove()},800);}},1200);});
+function enterRoom(){window.location.reload();}
+(function loop(){requestAnimationFrame(loop);ctrl.update();ren.render(sc,cam);})();
+addEventListener("resize",function(){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>

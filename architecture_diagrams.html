@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>HumanTogether 架构图</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background:#0a0a1a; color:#e0e0f0; font-size:10pt; line-height:1.6; }
+  .page { width:1100px; margin:40px auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 20px 80px rgba(0,0,0,0.4); }
+  .page-header { background:linear-gradient(135deg,#1a1a3a,#2d1b69); padding:40px 50px; }
+  .page-header h1 { color:#fff; font-size:24pt; font-weight:900; letter-spacing:2px; }
+  .page-header p { color:#a0a0d0; margin-top:8px; font-size:11pt; }
+  .page-body { padding:40px 50px; background:#fafafa; }
+  .page-footer { padding:20px 50px; background:#f0f0f5; text-align:center; color:#999; font-size:8pt; }
+
+  .section-title { font-size:14pt; color:#4a3fcf; font-weight:700; margin:30px 0 15px; padding-bottom:8px; border-bottom:2px solid #667eea; }
+  .caption { color:#666; font-size:8pt; text-align:center; margin-top:8px; }
+
+  .arch-diagram { background:#1a1a2e; border-radius:12px; padding:20px; margin:15px 0; position:relative; overflow:hidden; }
+  .arch-diagram::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(ellipse at 30% 50%,rgba(102,126,234,0.08) 0%,transparent 60%); pointer-events:none; }
+
+  .layer { margin:12px 0; position:relative; }
+  .layer-label { position:absolute; left:-5px; top:50%; transform:translateY(-50%) rotate(-90deg); font-size:7pt; font-weight:700; color:#667eea; letter-spacing:3px; text-transform:uppercase; white-space:nowrap; }
+  .layer-box { background:#1e1e3a; border:1px solid #333; border-radius:10px; padding:14px 20px; margin-left:30px; }
+  .layer-title { color:#667eea; font-size:9pt; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .layer-title .dot { width:8px; height:8px; border-radius:50%; background:#667eea; }
+
+  .row { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .box-card { background:#2a2a4a; border:1px solid #3a3a6a; border-radius:8px; padding:10px 14px; min-width:120px; flex:1; }
+  .box-card.blue { border-color:#3a5aaa; }
+  .box-card.purple { border-color:#6a3aaa; }
+  .box-card.green { border-color:#3aaa6a; }
+  .box-card.orange { border-color:#aa6a3a; }
+  .box-card.red { border-color:#aa3a5a; }
+  .box-card .name { color:#c0c0e0; font-size:8.5pt; font-weight:600; }
+  .box-card .desc { color:#7070a0; font-size:7pt; margin-top:3px; }
+  .box-card .tech { color:#667eea; font-size:7pt; margin-top:4px; font-family:monospace; }
+  .box-card .icon { font-size:16pt; margin-bottom:5px; }
+
+  .arrow-down { text-align:center; color:#667eea; font-size:16px; margin:4px 0; }
+  .arrow-right { display:inline-block; color:#667eea; font-size:14px; margin:0 4px; }
+
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; }
+
+  /* Flow diagram */
+  .flow { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; margin:15px 0; }
+  .flow-step { background:#2a2a4a; border:1px solid #3a3a6a; border-radius:10px; padding:10px 16px; text-align:center; min-width:100px; }
+  .flow-step .num { background:#667eea; color:#fff; width:20px; height:20px; border-radius:50%; font-size:7pt; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; }
+  .flow-step .title { color:#c0c0e0; font-size:8pt; font-weight:600; }
+  .flow-step .desc { color:#7070a0; font-size:7pt; margin-top:3px; }
+  .flow-arrow { color:#667eea; font-size:18px; }
+
+  /* Service box */
+  .service-row { display:flex; gap:8px; margin-top:8px; }
+  .service { background:#252545; border:1px solid #3a3a6a; border-radius:8px; padding:8px 12px; flex:1; text-align:center; }
+  .service .lang { font-size:7pt; color:#667eea; margin-top:2px; }
+  .service .name-s { color:#c0c0e0; font-size:8pt; font-weight:600; }
+  .service .icon-s { font-size:14pt; }
+
+  /* Data flow */
+  .data-flow { background:#1a1a2e; border-radius:10px; padding:15px; margin:10px 0; }
+  .data-flow-title { color:#667eea; font-size:8pt; font-weight:700; margin-bottom:10px; }
+  .pipe { display:flex; align-items:center; gap:6px; margin:6px 0; }
+  .pipe-label { color:#9090c0; font-size:7pt; width:80px; text-align:right; flex-shrink:0; }
+  .pipe-bar { flex:1; background:#2a2a4a; border-radius:4px; height:24px; position:relative; overflow:hidden; }
+  .pipe-fill { background:linear-gradient(90deg,#667eea,#764ba2); height:100%; border-radius:4px; display:flex; align-items:center; padding:0 8px; }
+  .pipe-text { color:#fff; font-size:7pt; font-weight:600; white-space:nowrap; }
+
+  /* Capability table */
+  .cap-table { width:100%; border-collapse:collapse; margin:10px 0; }
+  .cap-table th { background:#2d1b69; color:#fff; padding:8px 12px; font-size:8pt; text-align:left; }
+  .cap-table td { background:#1e1e3a; color:#c0c0e0; padding:7px 12px; font-size:8pt; border-bottom:1px solid #2a2a4a; }
+  .cap-table tr:nth-child(even) td { background:#252550; }
+  .cap-table .tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:7pt; }
+  .tag-g { background:#1a4a2a; color:#5aba8a; }
+  .tag-b { background:#1a2a5a; color:#5a8aba; }
+  .tag-p { background:#4a1a6a; color:#9a5aba; }
+  .tag-o { background:#4a3a1a; color:#ba8a5a; }
+
+  .milestone { display:flex; gap:15px; margin:15px 0; }
+  .milestone-item { flex:1; background:#1e1e3a; border-radius:10px; padding:15px; border-left:4px solid #667eea; }
+  .milestone-item .phase { color:#667eea; font-size:7pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .milestone-item .title { color:#fff; font-size:10pt; font-weight:700; margin:5px 0; }
+  .milestone-item .subs { color:#7070a0; font-size:7.5pt; line-height:1.8; }
+  .milestone-item .cost { color:#667eea; font-size:8pt; font-weight:600; margin-top:8px; }
+
+  .highlight-box { background:linear-gradient(135deg,#1a1a3a,#2d1b69); border-radius:12px; padding:20px; margin:20px 0; }
+  .highlight-box h3 { color:#667eea; font-size:10pt; margin-bottom:12px; }
+  .highlight-box .items { display:flex; flex-wrap:wrap; gap:10px; }
+  .hi { background:#2a2a4a; border-radius:8px; padding:8px 14px; flex:1; min-width:140px; }
+  .hi .n { color:#c0c0e0; font-size:8pt; font-weight:600; }
+  .hi .v { color:#667eea; font-size:14pt; font-weight:900; }
+
+  .three-tier { display:flex; gap:15px; margin:15px 0; }
+  .tier { flex:1; background:#1e1e3a; border-radius:10px; overflow:hidden; }
+  .tier-h { background:#2d1b69; padding:10px 15px; color:#667eea; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .tier-b { padding:12px 15px; }
+  .tier-item { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #2a2a4a; }
+  .tier-item:last-child { border:none; }
+  .tier-dot { width:6px; height:6px; border-radius:50%; background:#667eea; flex-shrink:0; }
+  .tier-text { color:#c0c0e0; font-size:7.5pt; }
+  .tier-tech { color:#7070a0; font-size:7pt; }
+
+  .page-break { page-break-before:always; }
+
+  .tag-row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+  .tag-pill { padding:4px 12px; border-radius:12px; font-size:7.5pt; font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 第1页：全局架构总览 ==================== -->
+<div class="page">
+  <div class="page-header">
+    <h1>🏗️ HumanTogether 系统架构总览</h1>
+    <p>十亿级人机共存平台 · 分层架构 · 技术选型</p>
+  </div>
+  <div class="page-body">
+
+    <div class="section-title">一、分层架构全景图</div>
+    <div class="arch-diagram">
+      <!-- 用户层 -->
+      <div class="layer">
+        <div class="layer-label">接入层</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>用户接入层 — 全球用户访问入口</div>
+          <div class="row">
+            <div class="box-card blue">
+              <div class="icon">📱</div>
+              <div class="name">移动 App</div>
+              <div class="desc">Flutter / iOS / Android</div>
+              <div class="tech">跨平台原生体验</div>
+            </div>
+            <div class="box-card blue">
+              <div class="icon">🌐</div>
+              <div class="name">Web 应用</div>
+              <div class="desc">Next.js + React</div>
+              <div class="tech">SSR + SEO 优化</div>
+            </div>
+            <div class="box-card blue">
+              <div class="icon">💬</div>
+              <div class="name">第三方平台</div>
+              <div class="desc">钉钉 / 企业微信</div>
+              <div class="tech">Bot 接入</div>
+            </div>
+            <div class="box-card blue">
+              <div class="icon">🔗</div>
+              <div class="name">AI Agent</div>
+              <div class="desc">MCP 协议接入</div>
+              <div class="tech">AI Agent 生态</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down">⬇️ ⬇️ ⬇️</div>
+
+      <!-- CDN -->
+      <div class="layer">
+        <div class="layer-label">CDN层</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>CDN 智能分发层</div>
+          <div class="row">
+            <div class="box-card orange">
+              <div class="icon">🌍</div>
+              <div class="name">阿里云 CDN</div>
+              <div class="desc">全国 2000+ 边缘节点</div>
+              <div class="tech">静态资源 + 动态加速</div>
+            </div>
+            <div class="box-card orange">
+              <div class="icon">⚡</div>
+              <div class="name">DNS 智能解析</div>
+              <div class="desc">按地域 / 运营商调度</div>
+              <div class="tech">DNSPod / HTTPDNS</div>
+            </div>
+            <div class="box-card orange">
+              <div class="icon">🛡️</div>
+              <div class="name">DDoS 防护</div>
+              <div class="desc">Tbit 级防护能力</div>
+              <div class="tech">云防清洗</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down">⬇️ ⬇️ ⬇️</div>
+
+      <!-- 网关 -->
+      <div class="layer">
+        <div class="layer-label">网关层</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>API 网关 + WAF 安全层</div>
+          <div class="row">
+            <div class="box-card purple">
+              <div class="icon">🚦</div>
+              <div class="name">Kong / Envoy</div>
+              <div class="desc">API Gateway</div>
+              <div class="tech">限流 / 鉴权 / 路由</div>
+            </div>
+            <div class="box-card purple">
+              <div class="icon">🔒</div>
+              <div class="name">WAF 防火墙</div>
+              <div class="desc">Web 应用防火墙</div>
+              <div class="tech">SQL注入 / XSS / CC</div>
+            </div>
+            <div class="box-card purple">
+              <div class="icon">🔑</div>
+              <div class="name">统一认证</div>
+              <div class="desc">JWT / OAuth2 / SSO</div>
+              <div class="tech">身份 + 权限 + 审计</div>
+            </div>
+            <div class="box-card purple">
+              <div class="icon">📊</div>
+              <div class="name">全链路监控</div>
+              <div class="desc">APM 全链路追踪</div>
+              <div class="tech">Jaeger + SkyWalking</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down">⬇️ ⬇️ ⬇️</div>
+
+      <!-- 应用层 -->
+      <div class="layer">
+        <div class="layer-label">应用层</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>微服务应用层 — 12 个核心服务</div>
+          <div class="row">
+            <div class="box-card green">
+              <div class="icon">👤</div>
+              <div class="name">用户服务</div>
+              <div class="desc">注册/认证/画像</div>
+              <div class="tech">Go + Gin</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">🤖</div>
+              <div class="name">AI 对话服务</div>
+              <div class="desc">情感陪伴 / 记忆</div>
+              <div class="tech">Python + FastAPI</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">💼</div>
+              <div class="name">机会服务</div>
+              <div class="desc">工作/项目/合作</div>
+              <div class="tech">Go + Gin</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">🤝</div>
+              <div class="name">社区服务</div>
+              <div class="desc">动态/问答/互助</div>
+              <div class="tech">Go + Gin</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">💰</div>
+              <div class="name">支付服务</div>
+              <div class="desc">交易/结算/分账</div>
+              <div class="tech">Go + Tron</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">🔔</div>
+              <div class="name">消息推送</div>
+              <div class="desc">PUSH / SMS / 站内信</div>
+              <div class="tech">Go + 极光</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">🔍</div>
+              <div class="name">搜索服务</div>
+              <div class="desc">全文 / 向量混合</div>
+              <div class="tech">Rust + Elasticsearch</div>
+            </div>
+            <div class="box-card green">
+              <div class="icon">⭐</div>
+              <div class="name">推荐服务</div>
+              <div class="desc">个性化推荐</div>
+              <div class="tech">Python + TensorFlow</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down">⬇️ ⬇️ ⬇️</div>
+
+      <!-- AI层 -->
+      <div class="layer">
+        <div class="layer-label">AI层</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>AI / ML 智能层</div>
+          <div class="row">
+            <div class="box-card">
+              <div class="icon">🧠</div>
+              <div class="name">LLM 对话引擎</div>
+              <div class="desc">海量并发对话</div>
+              <div class="tech">vLLM / SGLang</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">📚</div>
+              <div class="name">RAG 知识库</div>
+              <div class="desc">心理+就业知识</div>
+              <div class="tech">Milvus + LangChain</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">🎭</div>
+              <div class="name">情感分析引擎</div>
+              <div class="desc">情绪识别 + 共情</div>
+              <div class="tech">PyTorch + BERT</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">🔢</div>
+              <div class="name">Embedding 服务</div>
+              <div class="desc">向量化存储检索</div>
+              <div class="tech">Qdrant / Milvus</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">🎯</div>
+              <div class="name">推荐算法</div>
+              <div class="desc">协同过滤 + 深度学习</div>
+              <div class="tech">TensorFlow Recommenders</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down">⬇️ ⬇️ ⬇️</div>
+
+      <!-- 数据层 -->
+      <div class="layer">
+        <div class="layer-label">数据层</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>数据持久化层</div>
+          <div class="row">
+            <div class="box-card red">
+              <div class="icon">🗄️</div>
+              <div class="name">TiDB 主数据库</div>
+              <div class="desc">水平扩展 MySQL</div>
+              <div class="tech">4副本 / 分库分表</div>
+            </div>
+            <div class="box-card red">
+              <div class="icon">⚡</div>
+              <div class="name">Redis Cluster</div>
+              <div class="desc">热点数据缓存</div>
+              <div class="tech">10万+ QPS</div>
+            </div>
+            <div class="box-card red">
+              <div class="icon">📬</div>
+              <div class="name">Kafka 消息队列</div>
+              <div class="desc">异步解耦 / 事件流</div>
+              <div class="tech">10万+/秒吞吐</div>
+            </div>
+            <div class="box-card red">
+              <div class="icon">🗂️</div>
+              <div class="name">Elasticsearch</div>
+              <div class="desc">全文检索 + 日志</div>
+              <div class="tech">倒排索引</div>
+            </div>
+            <div class="box-card red">
+              <div class="icon">🧮</div>
+              <div class="name">时序数据库</div>
+              <div class="desc">监控指标存储</div>
+              <div class="tech">InfluxDB / TDengine</div>
+            </div>
+            <div class="box-card red">
+              <div class="icon">📦</div>
+              <div class="name">对象存储 OSS</div>
+              <div class="desc">图片 / 视频 / 文件</div>
+              <div class="tech">EB 级存储</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down">⬇️ ⬇️ ⬇️</div>
+
+      <!-- 基础设施 -->
+      <div class="layer">
+        <div class="layer-label">基础设施</div>
+        <div class="layer-box">
+          <div class="layer-title"><span class="dot"></span>基础设施层 — Kubernetes 多活部署</div>
+          <div class="row">
+            <div class="box-card">
+              <div class="icon">☸️</div>
+              <div class="name">Kubernetes</div>
+              <div class="desc">容器编排 / 自动扩缩容</div>
+              <div class="tech">RKE2 / EKS</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">🔄</div>
+              <div class="name">多活架构</div>
+              <div class="desc">北京/上海/广州/深圳/成都</div>
+              <div class="tech">跨 Region 容灾</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">📈</div>
+              <div class="name">Prometheus</div>
+              <div class="desc">监控 + 告警</div>
+              <div class="tech">Metrics 全栈</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">📊</div>
+              <div class="name">Grafana</div>
+              <div class="desc">可视化仪表盘</div>
+              <div class="tech">200+ 面板模板</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">🔍</div>
+              <div class="name">链路追踪</div>
+              <div class="desc">Jaeger 分布式追踪</div>
+              <div class="tech">请求全景</div>
+            </div>
+            <div class="box-card">
+              <div class="icon">📝</div>
+              <div class="name">日志中心</div>
+              <div class="desc">ELK 日志聚合</div>
+              <div class="tech">PB 级存储</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="caption">图1：HumanTogether 十亿级分层架构总览 — 从用户接入到基础设施全链路</p>
+
+  </div>
+  <div class="page-footer">HumanTogether 技术架构图 · v1.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第2页：AI系统 + 数据流 ==================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <h1>🧠 AI 系统架构与数据流</h1>
+    <p>情感陪伴 · RAG 知识库 · 推荐系统 · 对话引擎</p>
+  </div>
+  <div class="page-body">
+
+    <div class="section-title">一、AI 对话系统核心架构</div>
+    <div class="arch-diagram">
+      <div class="layer-title" style="color:#c0c0e0;font-size:9pt;margin-bottom:15px"><span class="dot" style="background:#764ba2"></span>端到端 AI 情感陪伴系统 — 有记忆的 AI 伙伴</div>
+
+      <!-- 输入处理 -->
+      <div style="display:flex;gap:15px;margin-bottom:15px">
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20pt">👤</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">用户消息</div>
+          <div style="color:#7070a0;font-size:7pt">文本/语音/图片</div>
+        </div>
+        <div style="display:flex;align-items:center;color:#667eea;font-size:18px">➡️</div>
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20pt">🔍</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">输入安全检查</div>
+          <div style="color:#7070a0;font-size:7pt">违禁词 / 敏感词过滤</div>
+        </div>
+        <div style="display:flex;align-items:center;color:#667eea;font-size:18px">➡️</div>
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20pt">🎭</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">情感识别</div>
+          <div style="color:#7070a0;font-size:7pt">情绪分类 · 优先级排序</div>
+        </div>
+        <div style="display:flex;align-items:center;color:#667eea;font-size:18px">➡️</div>
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20pt">🧠</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">意图识别</div>
+          <div style="color:#7070a0;font-size:7pt">分类 · Slot填充</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:#667eea;font-size:16px;margin:5px 0">⬇️</div>
+
+      <!-- 核心处理 -->
+      <div style="display:flex;gap:15px;margin-bottom:15px">
+        <!-- Memory -->
+        <div style="flex:1;background:#1e2a3a;border:1px solid #2a4a6a;border-radius:10px;padding:12px">
+          <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:8px">📝 用户历史记忆</div>
+          <div style="color:#7070a0;font-size:7pt;line-height:1.8">
+            • 历史对话摘要<br>
+            • 偏好技能标签<br>
+            • 情绪曲线记录<br>
+            • 人生阶段标记
+          </div>
+        </div>
+        <div style="flex:0.5;display:flex;align-items:center;justify-content:center;color:#667eea;font-size:18px">+</div>
+        <!-- RAG -->
+        <div style="flex:1.5;background:#1e2a3a;border:1px solid #2a4a6a;border-radius:10px;padding:12px">
+          <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:8px">📚 RAG 知识库检索</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:#2a2a4a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">心理知识库</span>
+            <span style="background:#2a2a4a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">就业指南</span>
+            <span style="background:#2a2a4a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">行业趋势</span>
+            <span style="background:#2a2a4a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">机会数据</span>
+          </div>
+          <div style="color:#7070a0;font-size:7pt">Milvus 向量匹配 + 关键词召回 → Top-K 上下文</div>
+        </div>
+        <div style="flex:0.5;display:flex;align-items:center;justify-content:center;color:#667eea;font-size:18px">+</div>
+        <!-- LLM -->
+        <div style="flex:2;background:#2a1a4a;border:1px solid #4a2a7a;border-radius:10px;padding:12px">
+          <div style="color:#9a6aba;font-size:8pt;font-weight:700;margin-bottom:8px">🤖 LLM 对话生成</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:#3a2a5a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">Qwen3-72B</span>
+            <span style="background:#3a2a5a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">DeepSeek-V3</span>
+            <span style="background:#3a2a5a;padding:2px 8px;border-radius:8px;font-size:7pt;color:#9a8aca">vLLM Serving</span>
+          </div>
+          <div style="color:#7070a0;font-size:7pt">系统提示词（含伙伴人设）→ 用户输入 → 历史上下文 → RAG → 生成响应</div>
+        </div>
+        <div style="flex:0.5;display:flex;align-items:center;justify-content:center;color:#667eea;font-size:18px">+</div>
+        <!-- Safety -->
+        <div style="flex:1;background:#2a1a3a;border:1px solid #4a2a5a;border-radius:10px;padding:12px">
+          <div style="color:#8a5aba;font-size:8pt;font-weight:700;margin-bottom:8px">🛡️ 安全校验</div>
+          <div style="color:#7070a0;font-size:7pt;line-height:1.8">
+            • 内容合规检查<br>
+            • 敏感信息脱敏<br>
+            • 输出质量过滤
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:#667eea;font-size:16px;margin:5px 0">⬇️</div>
+
+      <div style="display:flex;gap:15px">
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:18pt">💬</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">AI 响应输出</div>
+          <div style="color:#7070a0;font-size:7pt">情感回复 + 行动建议</div>
+        </div>
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:18pt">💾</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">记忆更新</div>
+          <div style="color:#7070a0;font-size:7pt">存入对话历史 + 向量数据库</div>
+        </div>
+        <div style="flex:1;background:#2a2a4a;border:1px solid #3a3a6a;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:18pt">🎯</div>
+          <div style="color:#c0c0e0;font-size:8pt;margin-top:5px">行动推荐</div>
+          <div style="color:#7070a0;font-size:7pt">推荐工作 / 机会 / 心理咨询</div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">图2：AI 对话系统核心处理流程 — 输入→情感识别→RAG检索→LLM生成→记忆更新</p>
+
+    <div class="section-title">二、数据流向 — 全链路追踪</div>
+    <div class="data-flow">
+      <div class="data-flow-title">📊 日均流量估算（10亿用户规模）</div>
+      <div class="pipe">
+        <div class="pipe-label">用户请求</div>
+        <div class="pipe-bar"><div class="pipe-fill" style="width:100%"><span class="pipe-text">10亿+ 次/天 · 峰值 100万 QPS</span></div></div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-label">CDN 命中</div>
+        <div class="pipe-bar"><div class="pipe-fill" style="width:75%;background:linear-gradient(90deg,#4a6aaa,#667eea)"><span class="pipe-text">75% 静态资源 CDN 命中</span></div></div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-label">API 网关</div>
+        <div class="pipe-bar"><div class="pipe-fill" style="width:65%"><span class="pipe-text">1000万+ QPS 路由分发</span></div></div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-label">AI 对话</div>
+        <div class="pipe-bar"><div class="pipe-fill" style="width:40%;background:linear-gradient(90deg,#764ba2,#9a5aba)"><span class="pipe-text">5亿+ 次 AI 对话/天</span></div></div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-label">Kafka 消息</div>
+        <div class="pipe-bar"><div class="pipe-fill" style="width:80%"><span class="pipe-text">10万+ 条消息/秒</span></div></div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-label">数据库写入</div>
+        <div class="pipe-bar"><div class="pipe-fill" style="width:30%;background:linear-gradient(90deg,#aa3a5a,#667eea)"><span class="pipe-text">1亿+ 行数据/天写入</span></div></div>
+      </div>
+    </div>
+
+    <div class="section-title">三、核心技术指标</div>
+    <table class="cap-table">
+      <tr>
+        <th>指标</th><th>Phase 1（100万用户）</th><th>Phase 2（1000万用户）</th><th>Phase 3（10亿用户）</th>
+      </tr>
+      <tr>
+        <td>同时在线</td>
+        <td>10万</td><td>100万</td><td>1亿</td>
+      </tr>
+      <tr>
+        <td>API 延迟 P99</td>
+        <td>&lt;200ms</td><td>&lt;100ms</td><td>&lt;50ms</td>
+      </tr>
+      <tr>
+        <td>AI 对话延迟</td>
+        <td>&lt;3s</td><td>&lt;1.5s</td><td>&lt;500ms</td>
+      </tr>
+      <tr>
+        <td>可用性 SLA</td>
+        <td>99.5%</td><td>99.9%</td><td>99.99%</td>
+      </tr>
+      <tr>
+        <td>数据存储</td>
+        <td>10TB</td><td>1PB</td><td>10EB</td>
+      </tr>
+    </table>
+
+  </div>
+  <div class="page-footer">HumanTogether 技术架构图 · v1.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第3页：微服务 + 数据模型 ==================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <h1>🔧 微服务架构与数据模型</h1>
+    <p>12个核心服务 · 数据库分库分表 · 高可用部署</p>
+  </div>
+  <div class="page-body">
+
+    <div class="section-title">一、12个核心微服务</div>
+    <div class="arch-diagram">
+      <div class="layer-title" style="color:#c0c0e0;font-size:9pt;margin-bottom:12px"><span class="dot" style="background:#3aaa6a"></span>微服务网格 — 服务间通信 + 服务治理</div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <!-- 核心服务 -->
+        <div class="box-card green" style="min-width:150px;flex:1">
+          <div style="font-size:14pt">👤</div>
+          <div class="name">用户服务 UserService</div>
+          <div class="tech">Go · Gin · TiDB</div>
+          <div class="desc" style="margin-top:5px">注册认证·画像·关系链</div>
+        </div>
+        <div class="box-card" style="min-width:150px;flex:1">
+          <div style="font-size:14pt">🤖</div>
+          <div class="name">AI对话服务 AIChat</div>
+          <div class="tech">Python · FastAPI · vLLM</div>
+          <div class="desc" style="margin-top:5px">对话·情感·记忆·RAG</div>
+        </div>
+        <div class="box-card green" style="min-width:150px;flex:1">
+          <div style="font-size:14pt">💼</div>
+          <div class="name">机会服务 OpportunitySvc</div>
+          <div class="tech">Go · Gin · TiDB</div>
+          <div class="desc" style="margin-top:5px">工作·项目·合作·悬赏</div>
+        </div>
+        <div class="box-card green" style="min-width:150px;flex:1">
+          <div style="font-size:14pt">🤝</div>
+          <div class="name">社区服务 CommunitySvc</div>
+          <div class="tech">Go · Gin · Redis</div>
+          <div class="desc" style="margin-top:5px">动态·问答·互助·师徒</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="box-card" style="min-width:110px;flex:1">
+          <div style="font-size:14pt">💰</div>
+          <div class="name">支付Pay</div>
+          <div class="tech">Go</div>
+        </div>
+        <div class="box-card" style="min-width:110px;flex:1">
+          <div style="font-size:14pt">🔔</div>
+          <div class="name">推送Push</div>
+          <div class="tech">Go</div>
+        </div>
+        <div class="box-card" style="min-width:110px;flex:1">
+          <div style="font-size:14pt">🔍</div>
+          <div class="name">搜索Search</div>
+          <div class="tech">Rust</div>
+        </div>
+        <div class="box-card" style="min-width:110px;flex:1">
+          <div style="font-size:14pt">⭐</div>
+          <div class="name">推荐Rec</div>
+          <div class="tech">Python</div>
+        </div>
+        <div class="box-card" style="min-width:110px;flex:1">
+          <div style="font-size:14pt">🌙</div>
+          <div class="name">精神寄托Soul</div>
+          <div class="tech">Go</div>
+        </div>
+        <div class="box-card" style="min-width:110px;flex:1">
+          <div style="font-size:14pt">📊</div>
+          <div class="name">数据Data</div>
+          <div class="tech">Python</div>
+        </div>
+      </div>
+
+      <div style="background:#1e1e3a;border:1px solid #2a2a4a;border-radius:8px;padding:12px;margin-top:10px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:8px">🔗 服务间通信</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="tag-pill" style="background:#1a2a4a;color:#5a8aba">gRPC · HTTP2 高性能调用</span>
+          <span class="tag-pill" style="background:#1a2a4a;color:#5a8aba">Kafka · 异步事件驱动</span>
+          <span class="tag-pill" style="background:#1a2a4a;color:#5a8aba">Redis Pub/Sub · 实时通知</span>
+          <span class="tag-pill" style="background:#1a2a4a;color:#5a8aba">Sentinel · 熔断限流</span>
+          <span class="tag-pill" style="background:#1a2a4a;color:#5a8aba">Apollo · 配置中心</span>
+          <span class="tag-pill" style="background:#1a2a4a;color:#5a8aba">Nacos · 服务注册发现</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">二、数据库分库分表策略</div>
+    <div class="three-tier">
+      <div class="tier">
+        <div class="tier-h">🗄️ 分库策略</div>
+        <div class="tier-b">
+          <div class="tier-item"><div class="tier-dot" style="background:#667eea"></div><div class="tier-text">users 库 → 按 user_id % N</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#3aaa6a"></div><div class="tier-text">opportunities 库 → 按 category hash</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#aa6a3a"></div><div class="tier-text">messages 库 → 按 room_id hash</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#aa3a5a"></div><div class="tier-text">ai_memory 库 → 按 user_id hash</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#9a5aba"></div><div class="tier-text">transactions 库 → 按 user_id</div></div>
+        </div>
+      </div>
+      <div class="tier">
+        <div class="tier-h">⚡ 缓存策略</div>
+        <div class="tier-b">
+          <div class="tier-item"><div class="tier-dot" style="background:#667eea"></div><div class="tier-text">L1: 本地缓存 5min（Caffeine）</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#3aaa6a"></div><div class="tier-text">L2: Redis Cluster（热数据）</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#aa6a3a"></div><div class="tier-text">L3: TiDB（冷数据 + 历史）</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#aa3a5a"></div><div class="tier-text">热点 Key 分散：tag%N 路由</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#9a5aba"></div><div class="tier-text">缓存预热 + 降级策略</div></div>
+        </div>
+      </div>
+      <div class="tier">
+        <div class="tier-h">🔄 读写分离</div>
+        <div class="tier-b">
+          <div class="tier-item"><div class="tier-dot" style="background:#667eea"></div><div class="tier-text">主库（写）→ 4个从库（读）</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#3aaa6a"></div><div class="tier-text">读请求 80% 路由到从库</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#aa6a3a"></div><div class="tier-text">MSR（MySQL Shell）数据校验</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#aa3a5a"></div><div class="tier-text">半同步复制（Semi-sync）</div></div>
+          <div class="tier-item"><div class="tier-dot" style="background:#9a5aba"></div><div class="tier-text">PingCAP TiDB-operator</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">三、核心数据模型</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+      <div class="arch-diagram" style="padding:15px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:10px">👤 users 用户表</div>
+        <table class="cap-table" style="margin:0">
+          <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+          <tr><td>id</td><td>UUID PK</td><td>用户唯一ID</td></tr>
+          <tr><td>phone</td><td>VARCHAR</td><td>手机号（实名）</td></tr>
+          <tr><td>name</td><td>VARCHAR</td><td>昵称</td></tr>
+          <tr><td>identity</td><td>ENUM</td><td>学生/职场/自由</td></tr>
+          <tr><td>skill_tags</td><td>JSON</td><td>技能标签数组</td></tr>
+          <tr><td>auth_level</td><td>INT</td><td>实名认证等级</td></tr>
+          <tr><td>trust_score</td><td>DECIMAL</td><td>信任分 0-100</td></tr>
+          <tr><td>created_at</td><td>TIMESTAMP</td><td>注册时间</td></tr>
+        </table>
+      </div>
+      <div class="arch-diagram" style="padding:15px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:10px">🤝 tasks 任务表</div>
+        <table class="cap-table" style="margin:0">
+          <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+          <tr><td>id</td><td>BIGINT PK</td><td>任务ID</td></tr>
+          <tr><td>poster_id</td><td>UUID FK</td><td>发布方</td></tr>
+          <tr><td>worker_id</td><td>UUID FK</td><td>承接方</td></tr>
+          <tr><td>title</td><td>VARCHAR</td><td>标题</td></tr>
+          <tr><td>reward</td><td>DECIMAL</td><td>报酬金额</td></tr>
+          <tr><td>status</td><td>ENUM</td><td>open/in_progress/completed/paid</td></tr>
+          <tr><td>category</td><td>VARCHAR</td><td>分类</td></tr>
+          <tr><td>location</td><td>VARCHAR</td><td>地点</td></tr>
+        </table>
+      </div>
+      <div class="arch-diagram" style="padding:15px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:10px">💼 opportunities 机会表</div>
+        <table class="cap-table" style="margin:0">
+          <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+          <tr><td>id</td><td>BIGINT PK</td><td>机会ID</td></tr>
+          <tr><td>user_id</td><td>UUID FK</td><td>发布者</td></tr>
+          <tr><td>title</td><td>VARCHAR</td><td>标题</td></tr>
+          <tr><td>description</td><td>TEXT</td><td>详情</td></tr>
+          <tr><td>category</td><td>VARCHAR</td><td>工作/项目/合作</td></tr>
+          <tr><td>reward</td><td>VARCHAR</td><td>报酬（面议/金额）</td></tr>
+          <tr><td>location</td><td>VARCHAR</td><td>线上/城市</td></tr>
+          <tr><td>views</td><td>INT</td><td>浏览量</td></tr>
+        </table>
+      </div>
+      <div class="arch-diagram" style="padding:15px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:10px">🧠 ai_memory AI记忆表</div>
+        <table class="cap-table" style="margin:0">
+          <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+          <tr><td>id</td><td>BIGINT PK</td><td>记录ID</td></tr>
+          <tr><td>user_id</td><td>UUID FK</td><td>用户</td></tr>
+          <tr><td>companion_id</td><td>VARCHAR</td><td>AI伙伴ID</td></tr>
+          <tr><td>messages</td><td>JSON</td><td>对话历史</td></tr>
+          <tr><td>embedding</td><td>VECTOR(1536)</td><td>向量表示</td></tr>
+          <tr><td>summary</td><td>TEXT</td><td>对话摘要</td></tr>
+          <tr><td>last_active</td><td>TIMESTAMP</td><td>最后活跃</td></tr>
+          <tr><td>updated_at</td><td>TIMESTAMP</td><td>更新时间</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <div class="page-footer">HumanTogether 技术架构图 · v1.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第4页：部署架构 + 扩展路径 ==================== -->
+<div class="page page-break">
+  <div class="page-header">
+    <h1>☸️ 部署架构与扩展路径</h1>
+    <p>多活容灾 · Kubernetes · 分阶段扩容 · Phase 1-3 里程碑</p>
+  </div>
+  <div class="page-body">
+
+    <div class="section-title">一、多活部署架构</div>
+    <div class="arch-diagram">
+      <div class="layer-title" style="color:#c0c0e0;font-size:9pt;margin-bottom:12px"><span class="dot" style="background:#aa3a5a"></span>五地域多活部署 · 同城双活 + 异地灾备</div>
+
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:15px">
+        <div style="background:#2a1a3a;border:1px solid #4a2a5a;border-radius:8px;padding:10px;text-align:center">
+          <div style="color:#667eea;font-size:7pt;font-weight:700">北京</div>
+          <div style="font-size:18pt;margin:5px 0">🇨🇳</div>
+          <div style="color:#7070a0;font-size:6.5pt">K8s ×3 Master</div>
+          <div style="color:#667eea;font-size:6.5pt">主中心 Primary</div>
+          <div style="color:#3aaa6a;font-size:6.5pt;margin-top:3px">✓ 全部服务</div>
+        </div>
+        <div style="background:#1e2a3a;border:1px solid #2a4a6a;border-radius:8px;padding:10px;text-align:center">
+          <div style="color:#667eea;font-size:7pt;font-weight:700">上海</div>
+          <div style="font-size:18pt;margin:5px 0">🇨🇳</div>
+          <div style="color:#7070a0;font-size:6.5pt">K8s ×3 Master</div>
+          <div style="color:#667eea;font-size:6.5pt">副中心 Secondary</div>
+          <div style="color:#3aaa6a;font-size:6.5pt;margin-top:3px">✓ 全部服务</div>
+        </div>
+        <div style="background:#1e2a3a;border:1px solid #2a4a6a;border-radius:8px;padding:10px;text-align:center">
+          <div style="color:#667eea;font-size:7pt;font-weight:700">广州</div>
+          <div style="font-size:18pt;margin:5px 0">🇨🇳</div>
+          <div style="color:#7070a0;font-size:6.5pt">K8s ×3 Master</div>
+          <div style="color:#aa6a3a;font-size:6.5pt">热备 Hot Standby</div>
+          <div style="color:#3aaa6a;font-size:6.5pt;margin-top:3px">✓ 核心服务</div>
+        </div>
+        <div style="background:#1e2a3a;border:1px solid #2a4a6a;border-radius:8px;padding:10px;text-align:center">
+          <div style="color:#667eea;font-size:7pt;font-weight:700">深圳</div>
+          <div style="font-size:18pt;margin:5px 0">🇨🇳</div>
+          <div style="color:#7070a0;font-size:6.5pt">K8s ×3 Master</div>
+          <div style="color:#aa6a3a;font-size:6.5pt">冷备 Cold Standby</div>
+          <div style="color:#3aaa6a;font-size:6.5pt;margin-top:3px">✓ AI服务</div>
+        </div>
+        <div style="background:#1e2a3a;border:1px solid #2a4a6a;border-radius:8px;padding:10px;text-align:center">
+          <div style="color:#667eea;font-size:7pt;font-weight:700">成都</div>
+          <div style="font-size:18pt;margin:5px 0">🇨🇳</div>
+          <div style="color:#7070a0;font-size:6.5pt">K8s ×3 Master</div>
+          <div style="color:#7070a0;font-size:6.5pt">冷备 Cold Standby</div>
+          <div style="color:#3aaa6a;font-size:6.5pt;margin-top:3px">✓ AI服务</div>
+        </div>
+      </div>
+
+      <div style="background:#1e1e3a;border:1px solid #2a2a4a;border-radius:8px;padding:12px">
+        <div style="color:#667eea;font-size:7.5pt;font-weight:700;margin-bottom:8px">🔗 跨地域网络</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:#2a2a4a;padding:3px 10px;border-radius:8px;font-size:7pt;color:#9a8aca">专线互联 100Gbps</span>
+          <span style="background:#2a2a4a;padding:3px 10px;border-radius:8px;font-size:7pt;color:#9a8aca">DNS 智能切换 &lt;30s</span>
+          <span style="background:#2a2a4a;padding:3px 10px;border-radius:8px;font-size:7pt;color:#9a8aca">数据同步延迟 &lt;100ms</span>
+          <span style="background:#2a2a4a;padding:3px 10px;border-radius:8px;font-size:7pt;color:#9a8aca">TiDB 分布式 5副本</span>
+          <span style="background:#2a2a4a;padding:3px 10px;border-radius:8px;font-size:7pt;color:#9a8aca">Kafka 跨地域复制</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">二、分阶段扩展路径</div>
+    <div class="milestone">
+      <div class="milestone-item">
+        <div class="phase">Phase 1</div>
+        <div class="title">0 → 100万用户</div>
+        <div class="subs">
+          • 单体验证 → 微服务化<br>
+          • 单机房 → 两地三中心<br>
+          • MySQL → TiDB 分片<br>
+          • 第三方 LLM API<br>
+          • MVP 功能：AI陪伴+机会板
+        </div>
+        <div class="cost">💰 成本：¥200万</div>
+      </div>
+      <div class="milestone-item">
+        <div class="phase" style="color:#3aaa6a">Phase 2</div>
+        <div class="title">100万 → 1000万用户</div>
+        <div class="subs">
+          • 全微服务 + K8s<br>
+          • 五地域多活部署<br>
+          • LLM 自托管（Qwen/DeepSeek）<br>
+          • 推荐系统 + 搜索服务<br>
+          • 支付/会员/企业服务
+        </div>
+        <div class="cost" style="color:#3aaa6a">💰 成本：¥2000万</div>
+      </div>
+      <div class="milestone-item">
+        <div class="phase" style="color:#aa6a3a">Phase 3</div>
+        <div class="title">1000万 → 10亿用户</div>
+        <div class="subs">
+          • 全球 CDN + 边缘计算<br>
+          • 自建 LLM 训练集群<br>
+          • 多云部署（阿里+腾讯+华为）<br>
+          • AI Agent 生态系统<br>
+          • 开放平台（API + MCP）
+        </div>
+        <div class="cost" style="color:#aa6a3a">💰 成本：¥5-50亿</div>
+      </div>
+    </div>
+
+    <div class="section-title">三、自动扩缩容策略</div>
+    <div class="arch-diagram">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+        <div>
+          <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:10px">📈 扩容触发条件</div>
+          <table class="cap-table" style="margin:0">
+            <tr><th>指标</th><th>阈值</th><th>扩容动作</th></tr>
+            <tr><td>CPU 使用率</td><td>&gt; 70% 持续 3min</td><td>扩容 + 2 Pod</td></tr>
+            <tr><td>内存使用率</td><td>&gt; 75% 持续 2min</td><td>扩容 + 2 Pod</td></tr>
+            <tr><td>P99 延迟</td><td>&gt; 500ms</td><td>扩容 + 4 Pod</td></tr>
+            <tr><td>请求队列</td><td>&gt; 1000</td><td>扩容 + 4 Pod</td></tr>
+            <tr><td>最小实例数</td><td colspan="2">每个服务 3 Pod</td></tr>
+            <tr><td>最大实例数</td><td colspan="2">每个服务 100 Pod</td></tr>
+          </table>
+        </div>
+        <div>
+          <div style="color:#667eea;font-size:8pt;font-weight:700;margin-bottom:10px">🛡️ 高可用保障</div>
+          <table class="cap-table" style="margin:0">
+            <tr><th>维度</th><th>方案</th></tr>
+            <tr><td>Pod 故障恢复</td><td>K8s 自愈 + 探针检测</td></tr>
+            <tr><td>节点故障</td><td>跨 AZ 分布 + 自动迁移</td></tr>
+            <tr><td>数据库故障</td><td>TiDB 自动切换 &lt;30s</td></tr>
+            <tr><td>Redis 故障</td><td>Cluster 自动 failover</td></tr>
+            <tr><td>LLM 服务故障</td><td>多副本 + 降级策略</td></tr>
+            <tr><td>Region 故障</td><td>DNS 切换 &lt;60s</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">四、技术栈全景</div>
+    <div class="highlight-box">
+      <div class="items">
+        <div class="hi"><div class="v">Go</div><div class="n">后端主力语言</div></div>
+        <div class="hi"><div class="v">Python</div><div class="n">AI/ML 开发</div></div>
+        <div class="hi"><div class="v">Flutter</div><div class="n">跨平台 App</div></div>
+        <div class="hi"><div class="v">Next.js</div><div class="n">Web 前端</div></div>
+        <div class="hi"><div class="v">TiDB</div><div class="n">分布式数据库</div></div>
+        <div class="hi"><div class="v">vLLM</div><div class="n">LLM 推理引擎</div></div>
+        <div class="hi"><div class="v">Milvus</div><div class="n">向量数据库</div></div>
+        <div class="hi"><div class="v">K8s</div><div class="n">容器编排</div></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="page-footer">HumanTogether 技术架构图 · v1.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+</body>
+</html>

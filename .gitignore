@@ -1,0 +1,13 @@
+*.db
+__pycache__/
+*.log
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+node_modules/
+.DS_Store
+*.swp
+*.swo
+*~

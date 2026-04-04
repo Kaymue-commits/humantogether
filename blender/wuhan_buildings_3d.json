@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "source": "OpenStreetMap Overpass API",
+    "city": "武汉 (Wuhan)",
+    "bbox": [
+      30.44,
+      114.12,
+      30.7,
+      114.44
+    ],
+    "center": [
+      30.58,
+      114.29
+    ],
+    "scale": 5000,
+    "total_buildings": 0,
+    "generated": "2026-03-30 07:44:38",
+    "cells": 9
+  },
+  "buildings": []
+}

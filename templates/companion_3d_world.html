@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI伴侣3D世界 · 共生境</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body,html{width:100%;height:100%;overflow:hidden;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+#bg{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,#1a3a52 0%,#2d5a7b 40%,#7ab0d4 70%,#f4d08a 100%)}
+#webgl{position:fixed;inset:0;z-index:1}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a52,#2d5a7b,#f4d08a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 1.5s}
+#loading .icon{font-size:60px;animation:bounce 1.5s ease-in-out infinite}
+#loading .title{font-size:22px;font-weight:800;color:#FFF;letter-spacing:4px;margin:12px 0 6px}
+#loading .subtitle{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:16px}
+#loading .bar{width:200px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;margin-top:16px}
+#loading .bar div{height:100%;background:linear-gradient(90deg,#FFD700,#FFA500);border-radius:2px;animation:loadBar 3s ease-out forwards}
+@keyframes loadBar{0%{width:0%}100%{width:100%}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* Top bar */
+#topbar{position:fixed;top:0;left:0;right:0;height:60px;background:rgba(26,58,82,0.9);backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 20px;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.2);gap:16px}
+.topbrand{font-size:16px;font-weight:900;color:#FFD700;letter-spacing:1px;flex-shrink:0}
+#room-indicator{color:rgba(255,255,255,0.9);font-size:14px;font-weight:600;flex:1;text-align:center}
+#room-indicator span{color:#FFD700}
+#day-night-btn{background:rgba(255,255,255,0.15);border:none;border-radius:16px;padding:6px 14px;color:#FFF;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0}
+#day-night-btn:hover{background:rgba(255,255,255,0.25)}
+
+/* AI selector */
+#ai-strip{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.95);border-radius:28px;padding:8px 16px;display:flex;gap:10px;z-index:100;box-shadow:0 6px 24px rgba(0,0,0,0.2);align-items:center}
+.ai-card{cursor:pointer;border-radius:20px;padding:8px 14px;display:flex;align-items:center;gap:7px;transition:all 0.2s;opacity:0.65;filter:grayscale(0.3)}
+.ai-card:hover,.ai-card.active{opacity:1;filter:none;background:rgba(45,90,123,0.1)}
+.ai-card .aiav{font-size:26px}
+.ai-card .ainame{font-size:12px;font-weight:700;color:#2d5a7b}
+
+/* Chat */
+#chatbar{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:min(600px,90vw);background:rgba(255,255,255,0.97);border-radius:28px;padding:8px 8px 8px 16px;display:flex;gap:8px;z-index:100;box-shadow:0 6px 28px rgba(0,0,0,0.18)}
+#chat-input{flex:1;padding:10px 0;border:none;outline:none;font-size:14px;background:transparent;color:#333}
+#chat-send{padding:10px 20px;border-radius:20px;border:none;background:linear-gradient(135deg,#2d5a7b,#1a3a52);color:#FFF;font-size:13px;font-weight:700;cursor:pointer}
+
+#chat-bubble{position:fixed;top:75px;right:20px;width:300px;background:rgba(255,255,255,0.97);border-radius:16px;padding:14px;z-index:100;box-shadow:0 6px 24px rgba(0,0,0,0.15);display:none;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+#chat-bubble.show{display:flex}
+.bubble-msg{display:flex;gap:8px;align-items:flex-start}
+.bubble-msg .bavatar{font-size:20px;flex-shrink:0}
+.bubble-msg .btext{font-size:13px;color:#444;background:#f0f4f8;padding:8px 12px;border-radius:12px;border-top-left-radius:4px;line-height:1.5}
+.bubble-msg.user{flex-direction:row-reverse}
+.bubble-msg.user .btext{background:#e3f2fd;border-radius:12px;border-top-right-radius:4px}
+.bubble-header{font-size:11px;color:#888;margin-bottom:4px;font-weight:600}
+
+#compass{position:fixed;top:70px;left:14px;background:rgba(255,255,255,0.9);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;z-index:90;box-shadow:0 3px 10px rgba(0,0,0,0.15);cursor:pointer}
+#lstatus{position:fixed;top:14px;right:14px;background:rgba(255,255,255,0.85);border-radius:20px;padding:4px 12px;font-size:11px;color:#2d5a7b;font-weight:600;z-index:101}
+#backlink{position:fixed;top:70px;left:14px;background:rgba(255,255,255,0.9);border-radius:20px;padding:6px 12px;font-size:12px;color:#2d5a7b;text-decoration:none;font-weight:600;z-index:90;box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+
+#light-panel{position:fixed;top:130px;right:14px;background:rgba(255,255,255,0.95);border-radius:16px;padding:12px;z-index:101;display:none;flex-direction:column;gap:8px;min-width:160px}
+#light-panel.show{display:flex}
+.lp-title{font-size:11px;color:#888;font-weight:600;margin-bottom:4px}
+.lp-row{display:flex;align-items:center;gap:8px;font-size:11px;color:#555}
+.lp-row input[type="range"]{flex:1;height:4px}
+.lp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<canvas id="webgl"></canvas>
+
+<div id="loading">
+  <div class="icon">🏠</div>
+  <div class="title">AI伴侣世界</div>
+  <div class="subtitle">Baked Lighting · 烘焙光照</div>
+  <div class="bar"><div></div></div>
+</div>
+
+<div id="topbar">
+  <div class="topbrand">🤝 共生境</div>
+  <div id="room-indicator"><span id="current-ai-name">Luna</span> 的房间</div>
+  <button id="day-night-btn" onclick="toggleDayNight()">🌙 夜间</button>
+</div>
+
+<a href="/" id="backlink">← 返回主页</a>
+<div id="compass" onclick="resetCamera()"><div id="carrow" style="font-size:18px">⬆️</div></div>
+<div id="lstatus">🏠 加载中...</div>
+
+<div id="light-panel">
+  <div class="lp-title">💡 动态光源</div>
+  <div class="lp-row"><div class="lp-dot" id="tv-dot" style="background:#ff115e"></div>TV光<input type="range" id="tv-strength" min="0" max="3" step="0.1" value="1.47" oninput="updateLight('tv', this.value)"></div>
+  <div class="lp-row"><div class="lp-dot" id="desk-dot" style="background:#ff6700"></div>桌灯<input type="range" id="desk-strength" min="0" max="3" step="0.1" value="1.9" oninput="updateLight('desk', this.value)"></div>
+  <div class="lp-row"><div class="lp-dot" id="pc-dot" style="background:#0082ff"></div>PC光<input type="range" id="pc-strength" min="0" max="3" step="0.1" value="1.4" oninput="updateLight('pc', this.value)"></div>
+</div>
+
+<div id="chat-bubble"></div>
+
+<div id="chatbar">
+  <input type="text" id="chat-input" placeholder="和 Luna 聊聊天..." onkeypress="if(event.key==='Enter')sendChat()" />
+  <button id="chat-send" onclick="sendChat()">发送</button>
+</div>
+
+<div id="ai-strip">
+  <div class="ai-card active" onclick="switchAI('luna')"><span class="aiav">🌙</span><span class="ainame">Luna</span></div>
+  <div class="ai-card" onclick="switchAI('kai')"><span class="aiav">🌊</span><span class="ainame">Kai</span></div>
+  <div class="ai-card" onclick="switchAI('nova')"><span class="aiav">⭐</span><span class="ainame">Nova</span></div>
+  <div class="ai-card" onclick="switchAI('milo')"><span class="aiav">🌿</span><span class="ainame">Milo</span></div>
+  <div class="ai-card" onclick="switchAI('sage')"><span class="aiav">📚</span><span class="ainame">Sage</span></div>
+</div>
+
+<script src="https://unpkg.com/three@0.134.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://unpkg.com/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  // Expose THREE globally for compatibility
+  const THREE = window.THREE;
+</script>
+<script>
+// ── AI Data ──────────────────────────────────────────────────────
+const companions = {
+  luna:  { emoji:'🌙', name:'Luna',  greeting:'你好呀，很高兴见到你 🌸', roomGLB:'/static/3droom/assets/rooms_v2/room_bedroom.glb',  tvColor:'#ffb3d0', deskColor:'#ffd700', pcColor:'#ff69b4' },
+  kai:   { emoji:'🌊', name:'Kai',   greeting:'你好，我是Kai。有什么需要理清的吗？ 🌊', roomGLB:'/static/3droom/assets/rooms_v2/room_office.glb',   tvColor:'#196aff', deskColor:'#7db81b', pcColor:'#ff5d00' },
+  nova:  { emoji:'⭐', name:'Nova',  greeting:'嗨！今天也要元气满满哦！ ✨💪', roomGLB:'/static/3droom/assets/rooms_v2/room_living.glb',  tvColor:'#ff8c00', deskColor:'#ffdd00', pcColor:'#ff3366' },
+  milo:  { emoji:'🌿', name:'Milo',  greeting:'慢慢来，深呼吸，一切都会好的 🌿', roomGLB:'/static/3droom/assets/rooms_v2/room_tea.glb',  tvColor:'#228b22', deskColor:'#8b4513', pcColor:'#556b2f' },
+  sage:  { emoji:'📚', name:'Sage',  greeting:'知识是光，照亮一切。有什么想学的吗？ 📚', roomGLB:'/static/3droom/assets/rooms_v2/room_reading.glb',  tvColor:'#8b4513', deskColor:'#daa520', pcColor:'#4169e1' }
+};
+
+// ── Global State ─────────────────────────────────────────────────
+let currentAI = '{{ companion_id|default("luna") }}';
+let scene, camera, renderer, controls;
+let roomGroup = null;
+let isDayNight = false;
+const lightStrengths = { tv:1.47, desk:1.9, pc:1.4 };
+const clock = new THREE.Clock();
+let chatHistory = [];
+let ledMaterials = [];
+let steamUniforms = null;
+let currentVRM = null;
+let loadedRoomModel = null;
+
+// No shared LoadingManager - each loader fires independently
+const textureLoader = new THREE.TextureLoader();
+const gltfLoader = new GLTFLoader(); // Used by background loaders
+
+// ── Shaders (ported from My-3D-Room) ─────────────────────────────
+const VS_BAKED = `
+varying vec2 vUv;
+void main(){
+  vec4 p=modelMatrix*vec4(position,1.);
+  gl_Position=projectionMatrix*viewMatrix*p;
+  vUv=uv;
+}`;
+
+const FS_BAKED = `
+uniform sampler2D uDayTex;
+uniform sampler2D uNightTex;
+uniform sampler2D uLightMap;
+uniform float uNightMix;
+uniform float uTvStr, uDeskStr, uPcStr;
+uniform vec3 uTvCol, uDeskCol, uPcCol;
+varying vec2 vUv;
+float blendL(float b,float k){return max(k,b);}
+vec3 blendL(vec3 b,vec3 k){return max(k,b);}
+void main(){
+  vec3 day=texture2D(uDayTex,vUv).rgb;
+  vec3 night=texture2D(uNightTex,vUv).rgb;
+  vec3 col=mix(day,night,uNightMix);
+  vec3 lm=texture2D(uLightMap,vUv).rgb;
+  col=blendL(col,uTvCol*lm.r*uTvStr);
+  col=blendL(col,uDeskCol*lm.g*uDeskStr);
+  col=blendL(col,uPcCol*lm.b*uPcStr);
+  gl_FragColor=vec4(col,1.);
+}`;
+
+const VS_STEAM = `
+uniform float uTime;
+uniform float uFreq;
+uniform vec2 uUvFreq;
+varying vec2 vUv;
+varying float vEl;
+void main(){
+  vUv=uv;
+  vec4 p=modelMatrix*vec4(position,1.);
+  float e=sin(p.x*uUvFreq.x+uTime*uFreq)*cos(p.z*uUvFreq.y+uTime*uFreq)*0.1;
+  p.y+=e; vEl=e;
+  gl_Position=projectionMatrix*viewMatrix*p;
+}`;
+
+const FS_STEAM = `
+uniform vec3 uColor;
+uniform float uTime;
+varying vec2 vUv;
+varying float vEl;
+void main(){
+  float a=smoothstep(0.,.3,vUv.y)*(1.-smoothstep(.7,1.,vUv.y));
+  float f=sin(uTime*.002+vUv.y*3.)*.3+.5;
+  gl_FragColor=vec4(uColor,a*f*.4);
+}`;
+
+// ── Init ─────────────────────────────────────────────────────────
+function init(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87CEEB);
+
+  camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 10, 50000);
+  camera.position.set(0, 600, 1200);
+  camera.lookAt(0, 200, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('webgl'), antialias:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.maxPolarAngle = Math.PI/2;
+  controls.minDistance = 300;
+  controls.maxDistance = 3000;
+  controls.target.set(0, 150, 0);
+  controls.addEventListener('change', updateCompass);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  scene.add(new THREE.HemisphereLight(0x87CEEB, 0x8B7355, 0.3));
+
+  // onLoad triggered by room load callback directly
+
+  loadBakedRoom();
+}
+
+// ── Load Baked Room ───────────────────────────────────────────────
+// Separate GLTFLoader instances per load (no shared LoadingManager)
+function loadBakedRoom(){
+  const ai = companions[currentAI];
+  if(loadedRoomModel){ scene.remove(loadedRoomModel); loadedRoomModel = null; }
+  const loader = new GLTFLoader(); // fresh instance
+  const loadTimeout = setTimeout(() => {
+    console.warn('Room GLB timeout - proceeding');
+    document.getElementById('lstatus').textContent = '⚠️ ' + ai.name + ' 房间';
+    onAllLoaded();
+  }, 15000);
+  loader.load(ai.roomGLB, (gltf) => {
+    clearTimeout(loadTimeout);
+    loadedRoomModel = gltf.scene;
+    const box = new THREE.Box3().setFromObject(loadedRoomModel);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    loadedRoomModel.position.sub(center);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scale = 800 / maxDim;
+    loadedRoomModel.scale.setScalar(scale);
+    scene.add(loadedRoomModel);
+    document.getElementById('lstatus').textContent = '✅ ' + ai.name + ' 房间加载完成';
+    onAllLoaded();
+    // Decorative assets load in background (non-blocking)
+    loadGoogleLedsBg();
+    loadCoffeeSteamBg();
+    loadVRMBg();
+  }, function(progress) {
+    if(progress.total) {
+      const pct = Math.round(progress.loaded / progress.total * 100);
+      document.getElementById('lstatus').textContent = '📦 房间加载中 ' + pct + '%';
+    }
+  }, (err) => {
+    clearTimeout(loadTimeout);
+    console.error('Room GLB error:', err);
+    document.getElementById('lstatus').textContent = '❌ 房间加载失败';
+    onAllLoaded();
+  });
+}
+    document.getElementById('lstatus').textContent = '❌ 模型加载失败';
+  });
+}
+
+function applyBakedMaterial(){ /* embedded materials from Blender GLB */ }
+
+// ── Google LEDs ──────────────────────────────────────────────────
+function loadGoogleLedsBg(){
+  gltfLoader.load('/static/3droom/assets/googleHomeLedsModel.glb', (gltf) => {
+    const mask = textureLoader.load('/static/3droom/assets/googleHomeLedMask.png');
+    mask.flipY = false;
+    const cols = ['#196aff','#ff0000','#ff5d00','#7db81b'];
+    ledMaterials = [];
+    const grp = new THREE.Group();
+    gltf.scene.children.forEach((c,i) => {
+      if(c.isMesh){
+        const m = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(cols[i%4]),
+          transparent:true, opacity:0.9, alphaMap:mask
+        });
+        c.material = m;
+        ledMaterials.push(m);
+        grp.add(c);
+      }
+    });
+    grp.position.set(200, 250, -100);
+    if(roomGroup) roomGroup.add(grp); else scene.add(grp);
+  });
+}
+
+// ── Coffee Steam ─────────────────────────────────────────────────
+function loadCoffeeSteamBg(){
+  gltfLoader.load('/static/3droom/assets/coffeeSteamModel.glb', (gltf) => {
+    steamUniforms = {
+      uTime: { value:0 },
+      uFreq: { value:0.0004 },
+      uUvFreq: { value: new THREE.Vector2(4,5) },
+      uColor: { value: new THREE.Color('#d2958a') }
+    };
+    const mat = new THREE.ShaderMaterial({
+      transparent:true, depthWrite:false,
+      vertexShader:VS_STEAM, fragmentShader:FS_STEAM,
+      uniforms: steamUniforms
+    });
+    gltf.scene.children.forEach(c => {
+      if(c.isMesh){ c.material = mat; c.position.set(280,180,-180); }
+    });
+    if(roomGroup) roomGroup.add(gltf.scene); else scene.add(gltf.scene);
+  });
+}
+
+// ── VRM Avatar ───────────────────────────────────────────────────
+function loadVRMBg(){
+  gltfLoader.load('/static/models/AliciaSolid_vrm-0.51.vrm', (gltf) => {
+    if(currentVRM) scene.remove(currentVRM);
+    currentVRM = gltf.scene;
+    currentVRM.scale.setScalar(1.0);
+    currentVRM.position.set(80, 0, 0);
+    currentVRM.rotation.y = Math.PI;
+    scene.add(currentVRM);
+  }, undefined, err => console.warn('VRM error:', err));
+}
+
+// ── Day / Night ─────────────────────────────────────────────────
+window.toggleDayNight = function(){
+  isDayNight = !isDayNight;
+  document.getElementById('day-night-btn').textContent = isDayNight ? '☀️ 日间' : '🌙 夜间';
+  // Day/night toggle disabled: Blender rooms are static baked scenes
+  document.getElementById('bg').style.background = isDayNight
+    ? 'linear-gradient(180deg,#0a1628 0%,#1a3a52 50%,#2d5a7b 100%)'
+    : 'linear-gradient(180deg,#1a3a52 0%,#2d5a7b 40%,#7ab0d4 70%,#f4d08a 100%)';
+  renderer.toneMappingExposure = isDayNight ? 0.8 : 1.1;
+};
+
+// ── Light Controls ───────────────────────────────────────────────
+window.updateLight = function(type, val){
+  lightStrengths[type] = parseFloat(val);
+  // Light controls disabled: Blender rooms use embedded materials
+};
+
+// ── Animation Loop ────────────────────────────────────────────────
+function animate(){
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  if(steamUniforms) steamUniforms.uTime.value = t*1000;
+  if(ledMaterials.length){
+    ledMaterials.forEach((m,i) => { m.opacity = Math.sin(t*1.5-i*.5)*.4+.6; });
+  }
+  if(currentVRM) currentVRM.position.y = Math.sin(t*1.5)*3;
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ── On All Loaded ────────────────────────────────────────────────
+function onAllLoaded(){
+  setTimeout(() => {
+    document.getElementById('loading').style.opacity = '0';
+    setTimeout(() => { document.getElementById('loading').style.display = 'none'; }, 1500);
+  }, 800);
+  animate();
+  const ai = companions[currentAI];
+  chatHistory = [{role:'ai', text:ai.greeting}];
+  showChatBubble();
+  document.getElementById('lstatus').textContent = `✅ ${ai.name} 的房间 (烘焙光照)`;
+  document.getElementById('current-ai-name').textContent = ai.name;
+  document.getElementById('chat-input').placeholder = `和 ${ai.name} 聊聊天...`;
+}
+
+// ── Compass ─────────────────────────────────────────────────────
+function updateCompass(){
+  const h = Math.atan2(camera.position.x, camera.position.z);
+  const d = (h*180/Math.PI+360)%360;
+  const a = document.getElementById('carrow');
+  if(a) a.style.transform = `rotate(${d}deg)`;
+}
+window.resetCamera = function(){
+  camera.position.set(0,600,1200);
+  controls.target.set(0,150,0);
+  controls.update();
+};
+
+// ── Switch AI ────────────────────────────────────────────────────
+window.switchAI = function(key){
+  if(!companions[key] || key===currentAI) return;
+  currentAI = key;
+  document.querySelectorAll('.ai-card').forEach(c => c.classList.remove('active'));
+  event.target.closest && event.target.closest('.ai-card').classList.add('active');
+
+  // Reload AI baked texture
+  const ai = companions[key];
+  loadBakedRoom();
+  loadVRM();
+
+  document.getElementById('current-ai-name').textContent = ai.name;
+  document.getElementById('chat-input').placeholder = `和 ${ai.name} 聊聊天...`;
+  document.getElementById('lstatus').textContent = `🔄 切换到 ${ai.name}...`;
+  document.getElementById('light-panel').classList.add('show');
+  chatHistory = [{role:'ai', text:ai.greeting}];
+  showChatBubble();
+  document.getElementById('lstatus').textContent = `✅ ${ai.name} 的房间`;
+};
+
+// ── Chat ─────────────────────────────────────────────────────────
+function showChatBubble(){
+  const b = document.getElementById('chat-bubble');
+  b.innerHTML = chatHistory.map(m => {
+    if(m.role==='ai'){
+      return `<div class="bubble-msg"><span class="bavatar">${companions[currentAI].emoji}</span><div><div class="bubble-header">${companions[currentAI].name}</div><div class="btext">${m.text}</div></div></div>`;
+    } else {
+      return `<div class="bubble-msg user"><div><div class="bubble-header">你</div><div class="btext">${m.text}</div></div></div>`;
+    }
+  }).join('');
+  b.classList.add('show');
+}
+
+window.sendChat = function(){
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  chatHistory.push({role:'user', text});
+  showChatBubble();
+  const ai = companions[currentAI];
+  const resps = [
+    ai.greeting+' 😊','嗯，我在听 🌸','说说看，我很想了解你 💭',
+    '你的想法很有意思 ✨','慢慢说，我在这里陪着你 🤗','好的，让我们一起想想办法 💪'
+  ];
+  setTimeout(() => {
+    chatHistory.push({role:'ai', text:resps[Math.floor(Math.random()*resps.length)]});
+    showChatBubble();
+  }, 800+Math.random()*800);
+};
+
+// ── Resize ───────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Boot ─────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

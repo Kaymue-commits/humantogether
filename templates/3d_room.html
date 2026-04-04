@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>{{companion_name}}的房间</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Roboto', sans-serif; }
+body { background: {{room_bg}}; }
+
+/* ── Top bar ── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+}
+#topbar .brand {
+  font-size: 15px; font-weight: 400; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+}
+#topbar .brand .emoji { font-size: 20px; }
+#room-nav { display: flex; gap: 8px; }
+.rm-btn {
+  padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 400;
+  cursor: pointer; text-decoration: none; transition: all 0.2s;
+  border: 1.5px solid rgba(255,255,255,0.4); color: #fff;
+}
+.rm-btn:hover { transform: scale(1.06); border-color: #fff; }
+
+/* ── 3D canvas ── */
+#canvas-wrap { position: fixed; inset: 0; z-index: 1; }
+#canvas-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── Loading ── */
+#loading {
+  position: fixed; inset: 0; z-index: 999;
+  background: {{room_bg}};
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #fff; transition: opacity 0.6s;
+}
+#loading.out { opacity: 0; pointer-events: none; }
+.loader-ring {
+  width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.9s linear infinite; margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p { font-size: 15px; font-weight: 300; letter-spacing: 0.5px; }
+
+/* ── Hint ── */
+#hint {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.4); color: rgba(255,255,255,0.8);
+  padding: 6px 18px; border-radius: 20px; font-size: 12px;
+  backdrop-filter: blur(8px); z-index: 200;
+  pointer-events: none;
+}
+
+/* ── Credits ── */
+.credits {
+  position: fixed; bottom: 16px; right: 16px;
+  font-size: 11px; color: rgba(255,255,255,0.5); z-index: 200;
+}
+.credits a { color: rgba(255,255,255,0.7); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="loader-ring"></div>
+  <p>正在进入{{companion_name}}的房间…</p>
+</div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div class="brand">
+    <span class="emoji">{{companion_emoji}}</span>
+    <span>{{companion_name}}的房间</span>
+  </div>
+  <div id="room-nav">
+    <a href="/3d/luna" class="rm-btn" style="background:rgba(255,179,208,0.5)">🌙 Luna</a>
+    <a href="/3d/kai" class="rm-btn" style="background:rgba(64,128,255,0.5)">🌊 Kai</a>
+    <a href="/3d/nova" class="rm-btn" style="background:rgba(255,140,0,0.5)">⭐ Nova</a>
+    <a href="/3d/milo" class="rm-btn" style="background:rgba(80,200,120,0.5)">🌿 Milo</a>
+    <a href="/3d/sage" class="rm-btn" style="background:rgba(200,149,108,0.5)">📚 Sage</a>
+  </div>
+</div>
+
+<!-- 3D canvas -->
+<div id="canvas-wrap"></div>
+
+<!-- Hint -->
+<div id="hint">🖱️ 拖动旋转 · 滚轮缩放 · 右键平移</div>
+
+<!-- Credits -->
+<div class="credits">Powered by <a href="https://github.com/houssemlachtar/My-3D-Room" target="_blank">My 3D Room</a></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.134.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── Room config ───
+const COMPANION = '{{companion_id}}';
+const ROOM_COLOR = {{room_color_json}};
+const BASE_URL = '/3d/static';
+
+// ─── Renderer ───
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+wrap.appendChild(renderer.domElement);
+
+// ─── Scene ───
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(ROOM_COLOR.bg);
+
+// ─── Camera ───
+const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 150);
+camera.position.set(-8, 6, 12);
+
+// ─── Controls ───
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 2, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 6;
+controls.maxDistance = 25;
+controls.maxPolarAngle = Math.PI * 0.52;
+controls.screenSpacePanning = true;
+controls.update();
+
+// ─── Lighting ───
+const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+scene.add(ambient);
+
+const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+dirLight.position.set(5, 10, 5);
+scene.add(dirLight);
+
+const fillLight = new THREE.DirectionalLight(ROOM_COLOR.light, 0.5);
+fillLight.position.set(-5, 3, -5);
+scene.add(fillLight);
+
+// ─── Draco loader ───
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath(BASE_URL + '/draco/gltf/');
+dracoLoader.preload();
+
+// ─── GLTF Loader ───
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+// ─── Load room model ───
+console.log('[Room] Loading room model...');
+gltfLoader.load(
+  BASE_URL + '/assets/roomModel.glb',
+  (gltf) => {
+    console.log('[Room] Room loaded!');
+    const room = gltf.scene;
+
+    // Apply baked texture
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      BASE_URL + '/assets/rooms/baked_' + COMPANION + '.jpg',
+      (bakedTexture) => {
+        console.log('[Room] Baked texture loaded for', COMPANION);
+        bakedTexture.encoding = THREE.SRGBColorSpace;
+        bakedTexture.flipY = false;
+
+        // Apply to all meshes in the room
+        room.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshBasicMaterial({
+              map: bakedTexture,
+            });
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+
+        scene.add(room);
+        console.log('[Room] Room added to scene');
+      },
+      undefined,
+      (err) => {
+        console.error('[Room] Texture error:', err);
+        // Try PNG fallback
+        textureLoader.load(
+          BASE_URL + '/assets/rooms/baked_' + COMPANION + '.png',
+          (bakedTexture) => {
+            bakedTexture.encoding = THREE.SRGBColorSpace;
+            bakedTexture.flipY = false;
+            room.traverse((child) => {
+              if (child.isMesh) {
+                child.material = new THREE.MeshBasicMaterial({ map: bakedTexture });
+              }
+            });
+            scene.add(room);
+          },
+          undefined,
+          () => {
+            // No texture, use vertex colors or plain
+            room.traverse((child) => {
+              if (child.isMesh && child.material) {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: ROOM_COLOR.room,
+                  roughness: 0.8,
+                  metalness: 0.1
+                });
+              }
+            });
+            scene.add(room);
+          }
+        );
+      }
+    );
+  },
+  (progress) => {
+    console.log('[Room] Loading:', (progress.loaded / progress.total * 100).toFixed(1) + '%');
+  },
+  (err) => {
+    console.error('[Room] Model load error:', err);
+    // Show error in loading div
+    document.getElementById('loading').innerHTML = `
+      <p style="color:#ff6b6b;font-size:13px">模型加载失败</p>
+      <p style="font-size:11px;margin-top:8px;opacity:0.7">${err.message || '请检查网络连接'}</p>
+    `;
+  }
+);
+
+// ─── Resize ───
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─── Animation ───
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ─── Remove loading ───
+setTimeout(() => {
+  const lo = document.getElementById('loading');
+  if (lo) { lo.classList.add('out'); setTimeout(() => lo.remove(), 700); }
+}, 2000);
+</script>
+</body>
+</html>

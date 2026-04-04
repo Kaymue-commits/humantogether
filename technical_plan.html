@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>HumanTogether 技术方案</title>
+<style>
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; margin: 40px; color: #222; font-size: 11pt; line-height: 1.8; }
+  h1 { font-size: 26pt; color: #4a3fcf; text-align: center; border-bottom: 3px solid #667eea; padding-bottom: 15px; margin-bottom: 30px; }
+  h2 { font-size: 16pt; color: #667eea; border-left: 5px solid #667eea; padding-left: 12px; margin-top: 35px; }
+  h3 { font-size: 12pt; color: #333; margin-top: 20px; }
+  p { margin: 8px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 15px 0; font-size: 10pt; }
+  th { background: #667eea; color: white; padding: 8px 12px; text-align: left; }
+  td { border: 1px solid #ddd; padding: 7px 12px; }
+  tr:nth-child(even) { background: #f5f5ff; }
+  code { background: #f0f0f5; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 9pt; }
+  .cover { text-align: center; padding: 60px 0; }
+  .cover .logo { font-size: 72pt; margin-bottom: 20px; }
+  .cover .title { font-size: 28pt; color: #4a3fcf; font-weight: bold; margin-bottom: 10px; }
+  .cover .sub { font-size: 14pt; color: #888; margin-bottom: 30px; }
+  .cover .meta { font-size: 10pt; color: #aaa; margin-top: 60px; }
+  .highlight { background: linear-gradient(135deg, #667eea22, #764ba222); border: 1px solid #667eea44; border-radius: 10px; padding: 15px 20px; margin: 20px 0; }
+  .two-col { display: flex; gap: 20px; }
+  .two-col > div { flex: 1; }
+  .box { background: #f5f5ff; border-radius: 8px; padding: 15px; margin: 10px 0; }
+  .tag { display: inline-block; background: #667eea; color: white; padding: 2px 10px; border-radius: 12px; font-size: 8pt; margin: 2px; }
+  .gray { color: #888; font-size: 9pt; }
+  .center { text-align: center; }
+  .page-break { page-break-before: always; }
+  ul { margin: 8px 0; padding-left: 25px; }
+  li { margin: 5px 0; }
+  .footer { text-align: center; color: #aaa; font-size: 8pt; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+</style>
+</head>
+<body>
+
+<!-- 封面 -->
+<div class="cover">
+  <div class="logo">🌟</div>
+  <div class="title">HumanTogether</div>
+  <div class="sub">人机共存平台 · 技术方案与实施路线图</div>
+  <div style="margin-top:40px">
+    <span class="tag">AI 情感陪伴</span>
+    <span class="tag">人机互助</span>
+    <span class="tag">工作机会</span>
+    <span class="tag">精神寄托</span>
+    <span class="tag">10亿用户</span>
+  </div>
+  <div class="meta">
+    <p>文档版本：v1.0 | 2026年3月</p>
+    <p>作者：ThinkPad小龙虾 🦞</p>
+  </div>
+</div>
+
+<!-- 第一章：愿景 -->
+<h1>一、愿景与目标</h1>
+
+<h2>1.1 平台愿景</h2>
+<p>HumanTogether 是一个<strong>人机共存平台</strong>，让每个人都能：</p>
+<ul>
+  <li>🤖 获得 AI 的情感陪伴和智能帮助</li>
+  <li>🤝 与真人互助，找到工作和机会</li>
+  <li>🌙 找到精神寄托，摆脱孤独</li>
+  <li>💼 发现职业机会，改变命运</li>
+</ul>
+
+<h2>1.2 市场规模</h2>
+<table>
+  <tr><th>用户群体</th><th>规模</th><th>核心需求</th></tr>
+  <tr><td>失业/待业人群</td><td>2亿+</td><td>找工作、过渡期陪伴</td></tr>
+  <tr><td>在职迷茫人群</td><td>3亿+</td><td>职业规划、副业机会</td></tr>
+  <tr><td>独居/孤独人群</td><td>1亿+</td><td>情感陪伴、精神寄托</td></tr>
+  <tr><td>创业者/自由职业</td><td>5000万+</td><td>合作机会、项目对接</td></tr>
+  <tr><td>学生群体</td><td>3亿+</td><td>实习、就业、人生指导</td></tr>
+</table>
+
+<h2>1.3 核心数据指标</h2>
+<table>
+  <tr><th>阶段</th><th>目标用户</th><th>日活目标</th><th>付费率</th><th>周期</th></tr>
+  <tr><td>Phase 1</td><td>100万</td><td>10万</td><td>1%</td><td>3个月</td></tr>
+  <tr><td>Phase 2</td><td>1000万</td><td>100万</td><td>3%</td><td>6-12个月</td></tr>
+  <tr><td>Phase 3</td><td>10亿</td><td>1亿</td><td>5%</td><td>3-5年</td></tr>
+</table>
+
+<!-- 第二章：产品功能 -->
+<h1 class="page-break">二、产品功能设计</h1>
+
+<h2>2.1 六大功能模块</h2>
+<table>
+  <tr><th>模块</th><th>功能</th><th>用户价值</th></tr>
+  <tr><td>🤖 AI 陪伴</td><td>情感聊天机器人、AI伙伴记忆、每日鼓励</td><td>24小时陪伴，治愈孤独</td></tr>
+  <tr><td>🤝 互助社区</td><td>技能交换、问答互助、师徒匹配</td><td>互帮互助，扩大人脉</td></tr>
+  <tr><td>💼 机会发布板</td><td>工作/项目/合作发布、悬赏任务</td><td>找工作、找合作，高效透明</td></tr>
+  <tr><td>👤 个人主页</td><td>身份档案、技能标签、评价系统</td><td>建立信任，展示价值</td></tr>
+  <tr><td>🌙 精神寄托</td><td>每日签到、树洞倾诉、心理咨询预约</td><td>心理健康，正念生活</td></tr>
+  <tr><td>📊 智能数据</td><td>推荐系统、就业趋势、AI机会匹配</td><td>个性化服务，降本增效</td></tr>
+</table>
+
+<h2>2.2 AI 陪伴系统（核心差异化）</h2>
+<div class="highlight">
+  <strong>不只是聊天机器人，是有记忆的 AI 伙伴</strong>
+  <p>用户 → AI对话引擎 → 情感识别 → 个性化响应</p>
+  <p>记忆系统（用户偏好、历史对话）→ RAG知识库（心理知识+就业知识）→ 行动推荐</p>
+</div>
+
+<h3>AI 伙伴类型</h3>
+<table>
+  <tr><th>伙伴</th><th>专长</th><th>性格</th><th>Emoji</th></tr>
+  <tr><td>Luna</td><td>情感陪伴</td><td>温柔倾听，永远在你身边</td><td>🌙</td></tr>
+  <tr><td>Kai</td><td>职业规划</td><td>冷静理性，帮你理清思路</td><td>🌊</td></tr>
+  <tr><td>Nova</td><td>生活激励</td><td>积极阳光，鼓励你前行</td><td>⭐</td></tr>
+  <tr><td>Milo</td><td>放松减压</td><td>佛系平和，帮你放松减压</td><td>🌿</td></tr>
+</table>
+
+<h2>2.3 商业模式</h2>
+<table>
+  <tr><th>收入来源</th><th>说明</th><th>占比预估</th></tr>
+  <tr><td>交易抽佣</td><td>任务完成时收取5-10%</td><td>40%</td></tr>
+  <tr><td>高级会员</td><td>AI伙伴定制、优先推荐 ¥9.9-99/月</td><td>30%</td></tr>
+  <tr><td>企业招聘服务</td><td>精准投放、优先展示</td><td>15%</td></tr>
+  <tr><td>广告</td><td>信息流广告、品牌合作</td><td>10%</td></tr>
+  <tr><td>心理咨询师分成</td><td>预约咨询抽佣</td><td>5%</td></tr>
+</table>
+
+<!-- 第三章：技术架构 -->
+<h1 class="page-break">三、十亿级技术架构</h1>
+
+<h2>3.1 分层架构总览</h2>
+<pre style="background:#f5f5ff;padding:15px;border-radius:8px;overflow-x:auto;font-size:9pt;line-height:1.6">
+┌──────────────────────────────────────────────────────────────────────┐
+│                      接入层（CDN + LBS）                            │
+│              阿里云 CDN / Cloudflare + 全国200+边缘节点               │
+├──────────────────────────────────────────────────────────────────────┤
+│                      网关层                                         │
+│              Kong / Envoy（API Gateway + WAF + 限流）                 │
+├──────────────────────────────────────────────────────────────────────┤
+│                     应用服务层（微服务）                              │
+│   ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐      │
+│   │用户服务 │  │AI对话  │  │机会服务 │  │社区服务 │  │支付服务 │      │
+│   │(Go)   │  │(Python)│  │(Go)    │  │(Go)    │  │(Go)    │      │
+│   └────────┘  └────────┘  └────────┘  └────────┘  └────────┘      │
+├──────────────────────────────────────────────────────────────────────┤
+│                      AI / ML 层                                     │
+│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
+│   │对话引擎  │  │推荐引擎  │  │情感分析  │  │Embedding │          │
+│   │(vLLM)   │  │(Python) │  │(PyTorch)│  │ 服务     │          │
+│   └──────────┘  └──────────┘  └──────────┘  └──────────┘          │
+│   ┌──────────┐                                                    │
+│   │RAG知识库 │ ← Milvus 向量数据库                                 │
+│   │(Milvus) │                                                    │
+│   └──────────┘                                                    │
+├──────────────────────────────────────────────────────────────────────┤
+│                      数据层                                         │
+│   主库：TiDB（水平扩展）  │  缓存：Redis Cluster                    │
+│   消息队列：Kafka（10万+/秒）│  搜索：Elasticsearch                  │
+│   对象存储：阿里云 OSS     │  向量库：Milvus                        │
+├──────────────────────────────────────────────────────────────────────┤
+│                      基础设施层                                     │
+│   Kubernetes（K8s）+ Docker + Helm Charts                          │
+│   多活部署：北京/上海/广州/深圳 + 成都                                 │
+│   观测：Prometheus + Grafana + Jaeger                              │
+└──────────────────────────────────────────────────────────────────────┘
+</pre>
+
+<h2>3.2 技术选型详解</h2>
+<table>
+  <tr><th>层级</th><th>技术选型</th><th>选型理由</th></tr>
+  <tr>
+    <td>App端</td>
+    <td><strong>Flutter + Dart</strong></td>
+    <td>iOS/Android 一套代码，性能接近原生，开发效率高</td>
+  </tr>
+  <tr>
+    <td>Web端</td>
+    <td><strong>Next.js + React</strong></td>
+    <td>SSR友好，SEO强，生态丰富，开发速度快</td>
+  </tr>
+  <tr>
+    <td>API网关</td>
+    <td><strong>Kong / Envoy</strong></td>
+    <td>高性能，插件丰富，WAF + 限流一体化</td>
+  </tr>
+  <tr>
+    <td>后端语言</td>
+    <td><strong>Go（业务）+ Python（AI）</strong></td>
+    <td>Go高并发、易部署；Python AI生态成熟</td>
+  </tr>
+  <tr>
+    <td>Web框架</td>
+    <td><strong>Gin（Go）+ FastAPI（Python）</strong></td>
+    <td>轻量、高性能、自动文档</td>
+  </tr>
+  <tr>
+    <td>主数据库</td>
+    <td><strong>TiDB（MySQL兼容）</strong></td>
+    <td>水平扩展、MySQL协议兼容、Cloud-native</td>
+  </tr>
+  <tr>
+    <td>缓存</td>
+    <td><strong>Redis Cluster</strong></td>
+    <td>成熟稳定，集群模式高可用</td>
+  </tr>
+  <tr>
+    <td>向量数据库</td>
+    <td><strong>Milvus / Qdrant</strong></td>
+    <td>AI Embedding 相似度检索，开源可控</td>
+  </tr>
+  <tr>
+    <td>LLM</td>
+    <td><strong>开源部署（Llama3/Qwen）+ 微调</strong></td>
+    <td>成本可控，数据安全，支持私有化部署</td>
+  </tr>
+  <tr>
+    <td>对话引擎</td>
+    <td><strong>vLLM / SGLang</strong></td>
+    <td>高吞吐 LLM serving，P95延迟低</td>
+  </tr>
+  <tr>
+    <td>搜索引擎</td>
+    <td><strong>Elasticsearch</strong></td>
+    <td>全文检索、聚合分析、实时搜索</td>
+  </tr>
+  <tr>
+    <td>消息队列</td>
+    <td><strong>Apache Kafka</strong></td>
+    <td>高吞吐、事件驱动、持久化可靠</td>
+  </tr>
+  <tr>
+    <td>CDN</td>
+    <td><strong>阿里云 CDN + 边缘节点</strong></td>
+    <td>就近访问、降低延迟、节省带宽</td>
+  </tr>
+  <tr>
+    <td>监控</td>
+    <td><strong>Prometheus + Grafana</strong></td>
+    <td>可观测性，告警，仪表盘</td>
+  </tr>
+  <tr>
+    <td>容器编排</td>
+    <td><strong>Kubernetes（RKE2/EKS）</strong></td>
+    <td>生产级容器编排，自愈能力强</td>
+  </tr>
+</table>
+
+<h2>3.3 数据模型</h2>
+<pre style="background:#f5f5ff;padding:15px;border-radius:8px;font-size:9pt">
+users                          tasks
+────────────────              ────────────────
+id (UUID) PK                 id PK
+phone / wechat               poster_id FK → users
+name                          worker_id FK
+identity (学生/职场/自由)        title
+skill_tags []                 reward
+auth_level                    status: open|in_progress|completed|paid
+trust_score (信任分)           category
+                              location
+opportunities                 created_at
+────────────────              ────────────────
+id PK
+user_id FK → users           applications
+title                         ────────────────
+description                   task_id FK → tasks
+category                      user_id FK → users
+reward                        status
+location                      applied_at
+contact                       ────────────────
+created_at                    ai_memory
+                              ────────────────
+                              user_id FK → users
+                              companion_id
+                              messages []
+                              embeddings []
+                              last_active
+</pre>
+
+<h2>3.4 扩展性设计（10亿用户）</h2>
+<table>
+  <tr><th>维度</th><th>方案</th><th>扩展能力</th></tr>
+  <tr><td>数据库水平扩展</td><td>TiDB 分库分表，按 user_id hash</td><td>支持100亿行+</td></tr>
+  <tr><td>缓存</td><td>Redis Cluster，热点数据预热</td><td>10万+ QPS</td></tr>
+  <tr><td>LLM 推理</td><td>vLLM 多卡并行，batch 优化</td><td>单节点 1000+ QPS</td></tr>
+  <tr><td>消息队列</td><td>Kafka 分区扩展，消费者组并行</td><td>10万+/秒</td></tr>
+  <tr><td>CDN</td><td>边缘节点全球部署</td><td>全球 &lt;50ms</td></tr>
+  <tr><td>微服务</td><td>Kubernetes HPA 自动扩缩容</td><td>分钟级扩容</td></tr>
+</table>
+
+<!-- 第四章：实施计划 -->
+<h1 class="page-break">四、实施计划</h1>
+
+<h2>4.1 Phase 1（0→100万用户，12周）</h2>
+<table>
+  <tr><th>周数</th><th>里程碑</th><th>交付物</th></tr>
+  <tr><td>Week 1-2</td><td>基础设施搭建</td>
+    <td>域名 + SSL、云服务器部署、数据库设计、CI/CD 流水线</td>
+  </tr>
+  <tr><td>Week 3-4</td><td>核心功能 MVP</td>
+    <td>用户注册/认证、AI对话系统 v1（规则引擎）、机会发布板 CRUD</td>
+  </tr>
+  <tr><td>Week 5-6</td><td>AI 系统升级</td>
+    <td>LLM 接入（RAG知识库）、情感识别、上下文记忆</td>
+  </tr>
+  <tr><td>Week 7-8</td><td>社区功能</td>
+    <td>动态/朋友圈、评论/点赞、技能匹配算法</td>
+  </tr>
+  <tr><td>Week 9-10</td><td>高级功能</td>
+    <td>个性化推荐系统、支付系统、消息推送</td>
+  </tr>
+  <tr><td>Week 11-12</td><td>运营 + 上线</td>
+    <td>灰度发布、数据埋点、安全审计、正式上线</td>
+  </tr>
+</table>
+
+<h2>4.2 Phase 1 团队配置（最小可行团队）</h2>
+<table>
+  <tr><th>角色</th><th>人数</th><th>月薪范围</th><th>职责</th></tr>
+  <tr><td>后端工程师（Go + Python）</td><td>×2</td><td>¥15-25K</td><td>API、微服务、AI集成</td></tr>
+  <tr><td>前端工程师（Flutter/Web）</td><td>×1</td><td>¥15-25K</td><td>App + Web 开发</td></tr>
+  <tr><td>AI/ML 工程师</td><td>×1</td><td>¥20-35K</td><td>LLM、RAG、推荐系统</td></tr>
+  <tr><td>产品经理</td><td>×1</td><td>¥15-25K</td><td>需求、路线图、运营</td></tr>
+  <tr><td>设计师</td><td>×1</td><td>¥10-20K</td><td>UI/UX、品牌</td></tr>
+  <tr style="background:#e8ecff;font-weight:bold">
+    <td colspan="2">合计</td><td colspan="2">¥75-130K/月 · 6人团队</td>
+  </tr>
+</table>
+
+<h2>4.3 Phase 1 成本估算</h2>
+<table>
+  <tr><th>项目</th><th>月费用</th><th>说明</th></tr>
+  <tr><td>云服务器（2×4核8G + 1×8核16G）</td><td>¥5,000</td><td>阿里云/腾讯云</td></tr>
+  <tr><td>LLM API 调用</td><td>¥5,000</td><td>初期用量</td></tr>
+  <tr><td>CDN + OSS</td><td>¥2,000</td><td>流量费用</td></tr>
+  <tr><td>域名 + SSL</td><td>¥500</td><td>年度</td></tr>
+  <tr><td>第三方服务（短信等）</td><td>¥1,000</td><td>初期</td></tr>
+  <tr style="background:#e8ecff;font-weight:bold">
+    <td>月成本合计</td><td colspan="2">约 ¥13,500/月</td>
+  </tr>
+  <tr style="background:#e8ecff;font-weight:bold">
+    <td>12个月总成本</td><td colspan="2">约 ¥16万（含人力约 ¥200万）</td>
+  </tr>
+</table>
+
+<h2>4.4 分阶段扩展路径</h2>
+<table>
+  <tr><th>阶段</th><th>用户规模</th><th>技术重点</th><th>成本预估</th></tr>
+  <tr><td>Phase 1</td><td>0→100万</td>
+    <td>单体验证 → 微服务化，数据分库分表</td><td>¥200万</td>
+  </tr>
+  <tr><td>Phase 2</td><td>100万→1000万</td>
+    <td>多活部署，LLM 自托管，推荐系统</td><td>¥2000万</td>
+  </tr>
+  <tr><td>Phase 3</td><td>1000万→10亿</td>
+    <td>全球CDN，多云部署，自建LLM训练</td><td>¥5-50亿</td>
+  </tr>
+</table>
+
+<!-- 第五章：安全与合规 -->
+<h1 class="page-break">五、安全与合规</h1>
+
+<h2>5.1 安全架构</h2>
+<ul>
+  <li>🛡️ <strong>应用安全：</strong>WAF（Web应用防火墙）+ API签名认证 + 限流防刷</li>
+  <li>🔐 <strong>数据安全：</strong>传输加密（TLS 1.3）+ 存储加密（AES-256）+ 密钥管理（KMS）</li>
+  <li>👤 <strong>身份安全：</strong>手机号实名 + 活体认证 + 行为风控</li>
+  <li>📊 <strong>隐私合规：</strong>GDPR + 《个人信息保护法》+ 数据脱敏</li>
+  <li>🔍 <strong>安全审计：</strong>渗透测试 + 漏洞扫描 + SOC2 认证（长期）</li>
+</ul>
+
+<h2>5.2 合规要求</h2>
+<table>
+  <tr><th>法规</th><th>要求</th><th>实施方案</th></tr>
+  <tr><td>网络安全法</td><td>用户实名制、数据本地化</td><td>手机号认证，数据存国内</td></tr>
+  <tr><td>个人信息保护法</td><td>知情同意、最小必要</td><td>隐私协议、权限申请</td></tr>
+  <tr><td>算法推荐管理规定</td><td>算法透明、可关闭</td><td>推荐解释、一键关闭</td></tr>
+</table>
+
+<!-- 第六章：竞争优势 -->
+<h1>六、竞争优势</h1>
+
+<h2>6.1 差异化定位</h2>
+<table>
+  <tr><th>维度</th><th>HumanTogether</th><th>传统招聘平台</th><th>社交平台</th></tr>
+  <tr><td>AI 深度</td><td>🤖 AI伙伴+记忆+RAG</td><td>搜索匹配</td><td>无</td></tr>
+  <tr><td>精神价值</td><td>🌙 情感陪伴+心理咨询</td><td>无</td><td>有限</td></tr>
+  <tr><td>互助深度</td><td>🤝 技能交换+师徒</td><td>单向发布</td><td>弱</td></tr>
+  <tr><td>机会类型</td><td>💼 工作+项目+合作</td><td>仅工作</td><td>无</td></tr>
+  <tr><td>情感连接</td><td>⭐ 每日鼓励+树洞</td><td>无</td><td>弱</td></tr>
+</table>
+
+<h2>6.2 护城河</h2>
+<ul>
+  <li>📚 <strong>专有数据：</strong>用户与AI伙伴的历史对话数据，形成越用越懂你的壁垒</li>
+  <li>🧠 <strong>RAG知识库：</strong>心理知识 + 就业知识的深度积累</li>
+  <li>🔗 <strong>网络效应：</strong>用户越多 → 机会越多 → AI越准 → 用户越多</li>
+  <li>🛡️ <strong>信任体系：</strong>评价系统 + 身份认证 + 交易保障</li>
+</ul>
+
+<div class="footer">
+  <p>HumanTogether 技术方案 v1.0 | ThinkPad小龙虾 🦞</p>
+  <p>本文档为内部使用，版权归 HumanTogether 团队所有</p>
+</div>
+
+</body>
+</html>

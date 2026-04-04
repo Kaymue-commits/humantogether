@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ companion_name }} · 共生境</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1a3a52;
+  --secondary: #2d5a7b;
+  --accent: #FFD700;
+  --coral: #E07A5F;
+  --coral-dark: #C4624A;
+  --mint: #7EC8A3;
+  --white: #FFFFFF;
+  --warm-bg: #FFF9F4;
+  --light: #F8FAFC;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--warm-bg);
+  color: #333;
+  overflow-x: hidden;
+}
+
+/* NAV */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(26,58,82,0.97);
+  backdrop-filter: blur(12px);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+}
+
+.nav-logo {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+
+.nav-logo span { color: var(--accent); }
+
+.nav-links { display: flex; gap: 8px; align-items: center; }
+
+.nav-link {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-link.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+.nav-coin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,215,0,0.15);
+  border: 1px solid rgba(255,215,0,0.3);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* HERO */
+.profile-hero {
+  background: linear-gradient(160deg, #1a3a52 0%, #2d5a7b 60%, #3a7ab0 100%);
+  padding: 100px 20px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,215,0,0.08) 0%, transparent 70%);
+}
+
+.profile-emoji {
+  font-size: 100px;
+  display: block;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));
+  position: relative;
+  z-index: 1;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.profile-name {
+  font-size: 40px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 6px;
+  letter-spacing: -1px;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-personality {
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-stat {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  padding: 12px 20px;
+  min-width: 90px;
+}
+
+.profile-stat-num {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+.profile-stat-num.gold { color: var(--accent); }
+.profile-stat-num.coral { color: var(--coral); }
+.profile-stat-num.mint { color: var(--mint); }
+
+/* INTIMACY BAR */
+.intimacy-section {
+  max-width: 600px;
+  margin: -20px auto 0;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.intimacy-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 24px rgba(139,69,19,0.1);
+  margin-bottom: 20px;
+}
+
+.intimacy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.intimacy-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.intimacy-level {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #FFA500);
+  color: #8B4513;
+}
+
+.intimacy-bar-bg {
+  height: 10px;
+  background: #f0ebe6;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.intimacy-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #FFA500);
+  border-radius: 5px;
+  transition: width 1s ease;
+  width: 0%;
+}
+
+/* ACTION BUTTONS */
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s;
+}
+
+.btn-chat {
+  background: linear-gradient(135deg, var(--coral), var(--coral-dark));
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(224,122,95,0.3);
+}
+
+.btn-chat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(224,122,95,0.4);
+}
+
+.btn-room {
+  background: linear-gradient(135deg, var(--accent), #e6b800);
+  color: #8B4513;
+  box-shadow: 0 4px 16px rgba(255,165,0,0.3);
+}
+
+.btn-room:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255,165,0,0.4);
+}
+
+.btn-shop {
+  background: linear-gradient(135deg, #a78bda, #8b6bba);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(167,139,218,0.3);
+  grid-column: span 2;
+}
+
+/* SECTION */
+.section {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 20px 100px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* MEMORY CARDS */
+.memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.memory-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(139,69,19,0.06);
+  border-left: 4px solid var(--accent);
+  font-size: 14px;
+  color: #8B4513;
+  line-height: 1.6;
+}
+
+.memory-card.type-event { border-left-color: var(--coral); }
+.memory-card.type-emotion { border-left-color: var(--mint); }
+
+.memory-meta {
+  font-size: 11px;
+  color: #bbb;
+  margin-top: 4px;
+}
+
+.empty-state {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  color: #aaa;
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(139,69,19,0.05);
+}
+
+/* ACTIVITY TIMELINE */
+.activity-list {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(139,69,19,0.06);
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f5f0eb;
+  align-items: center;
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-time {
+  font-size: 11px;
+  color: #bbb;
+  width: 48px;
+  flex-shrink: 0;
+}
+
+.activity-text {
+  font-size: 14px;
+  color: #8B4513;
+  flex: 1;
+}
+
+.activity-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(26,58,82,0.97);
+  backdrop-filter: blur(16px);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+}
+
+.bottom-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 0.2s;
+  min-width: 60px;
+}
+
+.bottom-nav-link:hover, .bottom-nav-link.active {
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+.bottom-nav-icon { font-size: 22px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">共生<span>境</span></a>
+  <div class="nav-links">
+    <a href="/ai-world" class="nav-link">🌟 AI世界</a>
+    <a href="/3d" class="nav-link">🌍 地球</a>
+    <a href="/shop" class="nav-link">🎁 商店</a>
+    <div class="nav-coin">💰 <span id="coinBalance">--</span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="profile-hero">
+  <span class="profile-emoji" id="profileEmoji">{{ companion_emoji }}</span>
+  <h1 class="profile-name" id="profileName">{{ companion_name }}</h1>
+  <p class="profile-personality" id="profilePersonality">{{ companion_personality }}</p>
+  <div class="profile-stats">
+    <div class="profile-stat">
+      <div class="profile-stat-num gold" id="statIntimacy">--</div>
+      <div class="profile-stat-label">亲密度</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num coral" id="statChats">--</div>
+      <div class="profile-stat-label">对话</div>
+    </div>
+    <div class="profile-stat">
+      <div class="profile-stat-num mint" id="statGifts">--</div>
+      <div class="profile-stat-label">礼物</div>
+    </div>
+  </div>
+</section>
+
+<!-- INTIMACY BAR -->
+<div class="intimacy-section">
+  <div class="intimacy-card">
+    <div class="intimacy-header">
+      <span class="intimacy-label">💛 亲密度</span>
+      <span class="intimacy-level" id="intimacyLevel">陌生</span>
+    </div>
+    <div class="intimacy-bar-bg">
+      <div class="intimacy-bar-fill" id="intimacyBar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="action-buttons">
+  <a href="#" class="action-btn btn-chat" id="btnChat">
+    💬 和{{ companion_name }}聊天
+  </a>
+  <a href="#" class="action-btn btn-room" id="btnRoom">
+    🏠 参观房间
+  </a>
+  <a href="/shop" class="action-btn btn-shop">
+    🎁 为{{ companion_name }}购买礼物
+  </a>
+</div>
+
+<!-- MEMORIES -->
+<section class="section">
+  <h2 class="section-title">📝 记忆碎片</h2>
+  <div class="memory-list" id="memoryList">
+    <div class="empty-state">还没有回忆，和{{ companion_name }}聊聊吧 💬</div>
+  </div>
+</section>
+
+<!-- ACTIVITIES -->
+<section class="section" style="padding-top: 0;">
+  <h2 class="section-title">⏰ {{ companion_name }}最近在做什么</h2>
+  <div class="activity-list" id="activityList">
+    <div class="empty-state">暂无活动记录</div>
+  </div>
+</section>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a href="/" class="bottom-nav-link">
+    <span class="bottom-nav-icon">🏠</span>
+    首页
+  </a>
+  <a href="#" class="bottom-nav-link active" id="navCompanion">
+    <span class="bottom-nav-icon">🤖</span>
+    AI伙伴
+  </a>
+  <a href="#" class="bottom-nav-link" id="navRoom">
+    <span class="bottom-nav-icon">🏠</span>
+    房间
+  </a>
+  <a href="/shop" class="bottom-nav-link">
+    <span class="bottom-nav-icon">🎁</span>
+    商店
+  </a>
+  <a href="/ai-world" class="bottom-nav-link">
+    <span class="bottom-nav-icon">🌟</span>
+    AI世界
+  </a>
+</nav>
+
+<script>
+// Get companion from URL
+const companionId = '{{ companion_name }}'.toLowerCase().replace('luna','luna').replace('kai','kai').replace('nova','nova').replace('milo','milo').replace('sage','sage') || 'luna';
+const cname = '{{ companion_name }}';
+
+// Update nav links
+document.getElementById('btnChat').href = '/chat?companion=' + cname.toLowerCase();
+document.getElementById('btnRoom').href = '/room/' + cname.toLowerCase();
+document.getElementById('navCompanion').href = '/companion/' + cname.toLowerCase();
+document.getElementById('navRoom').href = '/room/' + cname.toLowerCase();
+
+// Load intimacy
+fetch('/api/intimacy/' + cname.toLowerCase())
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('statIntimacy').textContent = d.intimacy || 0;
+    document.getElementById('statChats').textContent = d.total_chats || 0;
+    document.getElementById('statGifts').textContent = d.gifts_given || 0;
+    const intimacy = d.intimacy || 0;
+    let level = '陌生';
+    if (intimacy >= 600) level = '挚友';
+    else if (intimacy >= 300) level = '亲密';
+    else if (intimacy >= 100) level = '熟悉';
+    document.getElementById('intimacyLevel').textContent = level;
+    document.getElementById('intimacyBar').style.width = Math.min(intimacy / 4, 100) + '%';
+  });
+
+// Load memories
+fetch('/api/memories/' + cname.toLowerCase())
+  .then(r => r.json())
+  .then(d => {
+    const list = document.getElementById('memoryList');
+    if (!d.items || d.items.length === 0) return;
+    list.innerHTML = d.items.map(m => {
+      const icon = m.memory_type === 'event' ? '📅' : m.memory_type === 'emotion' ? '💭' : '📝';
+      const cls = m.memory_type === 'event' ? 'type-event' : m.memory_type === 'emotion' ? 'type-emotion' : '';
+      return '<div class="memory-card ' + cls + '">' + icon + ' ' + m.content + '<div class="memory-meta">' + (m.created_at || '').substring(0, 10) + '</div></div>';
+    }).join('');
+  });
+
+// Load activities
+fetch('/api/activities/' + cname.toLowerCase())
+  .then(r => r.json())
+  .then(d => {
+    const list = document.getElementById('activityList');
+    if (!d.items || d.items.length === 0) return;
+    list.innerHTML = d.items.map(a => {
+      const time = a.started_at ? a.started_at.substring(5, 10) : '--';
+      return '<div class="activity-item"><div class="activity-time">' + time + '</div><div class="activity-text">' + (a.detail || a.activity || '') + '</div><div class="activity-icon">⏰</div></div>';
+    }).join('');
+  });
+
+// Load coin
+fetch('/api/stats')
+  .then(r => r.json())
+  .then(d => {
+    if (d.user_coin_balance !== undefined) {
+      document.getElementById('coinBalance').textContent = d.user_coin_balance;
+    }
+  });
+</script>
+</body>
+</html>

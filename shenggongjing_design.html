@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>共生境 · HumanTogether 技术方案</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background:#06060f; color:#d0d0e8; font-size:10.5pt; line-height:1.85; }
+  .page { width:1160px; margin:30px auto; background:#0a0a1e; border-radius:20px; overflow:hidden; border:1px solid #1a1a3a; box-shadow:0 30px 100px rgba(0,0,0,0.6); }
+  .page-head { background:linear-gradient(135deg,#0d0d2b 0%,#1a0a3a 50%,#0d0d2b 100%); padding:50px 55px; position:relative; overflow:hidden; }
+  .page-head::before { content:''; position:absolute; top:0;left:0;right:0;bottom:0; background:radial-gradient(ellipse at 20% 50%,rgba(102,126,234,0.15) 0%,transparent 60%), radial-gradient(ellipse at 80% 20%,rgba(118,75,162,0.1) 0%,transparent 50%); pointer-events:none; }
+  .page-head .badge { display:inline-block; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:4px 16px; border-radius:20px; font-size:8pt; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:15px; }
+  .page-head h1 { font-size:30pt; color:#fff; font-weight:900; letter-spacing:3px; margin-bottom:8px; position:relative; }
+  .page-head h1 span { background:linear-gradient(135deg,#667eea,#ff7eb3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .page-head .subtitle { font-size:13pt; color:#9090c8; margin-bottom:20px; position:relative; }
+  .page-head .meta { display:flex; gap:20px; flex-wrap:wrap; position:relative; }
+  .meta-item { background:rgba(102,126,234,0.12); border:1px solid rgba(102,126,234,0.3); border-radius:10px; padding:8px 16px; font-size:8pt; }
+  .meta-item .label { color:#667eea; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .meta-item .value { color:#c0c0e0; margin-top:2px; }
+  .page-body { padding:45px 55px; }
+
+  .page-break { page-break-before:always; }
+  .footer { text-align:center; color:#404060; font-size:8pt; padding:20px 55px; border-top:1px solid #1a1a2e; }
+
+  .section-head { margin:40px 0 20px; display:flex; align-items:center; gap:12px; }
+  .section-num { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10pt; font-weight:900; flex-shrink:0; }
+  .section-title { font-size:15pt; color:#fff; font-weight:800; letter-spacing:1px; }
+  .section-sub { font-size:9pt; color:#6060a0; margin-top:3px; }
+
+  /* Phase cards */
+  .phases { display:flex; flex-direction:column; gap:16px; margin:20px 0; }
+  .phase { background:#0e0e22; border:1px solid #1e1e3a; border-radius:14px; overflow:hidden; }
+  .phase-h { background:linear-gradient(90deg,#1a1a3a,#0e0e22); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1e1e3a; }
+  .phase-name { font-size:10pt; font-weight:800; color:#fff; letter-spacing:1px; }
+  .phase-time { font-size:8pt; color:#667eea; background:rgba(102,126,234,0.15); padding:3px 10px; border-radius:10px; }
+  .phase-body { padding:18px 20px; display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .phase-body .features { }
+  .phase-body .metrics { }
+  .phase-body h4 { color:#667eea; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+  .feat-list { list-style:none; padding:0; margin:0; }
+  .feat-list li { padding:5px 0; color:#a0a0c8; font-size:8.5pt; display:flex; align-items:flex-start; gap:8px; border-bottom:1px solid #0e0e22; }
+  .feat-list li:last-child { border:none; }
+  .feat-list li::before { content:'✓'; color:#667eea; font-weight:900; flex-shrink:0; margin-top:1px; }
+  .metric-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #1a1a2e; font-size:8.5pt; }
+  .metric-row:last-child { border:none; }
+  .metric-label { color:#7070a0; }
+  .metric-value { color:#667eea; font-weight:700; }
+
+  /* Architecture diagram */
+  .arch { background:#08081a; border-radius:14px; padding:20px; margin:15px 0; border:1px solid #151530; }
+  .arch-layer { margin:10px 0; }
+  .arch-label { color:#667eea; font-size:7pt; font-weight:700; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; padding-left:5px; }
+  .arch-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .arch-card { background:#0f0f24; border:1px solid #1e1e3a; border-radius:8px; padding:10px 13px; flex:1; min-width:120px; }
+  .arch-card.blue { border-color:rgba(90,130,234,0.4); }
+  .arch-card.purple { border-color:rgba(150,90,186,0.4); }
+  .arch-card.green { border-color:rgba(60,180,120,0.4); }
+  .arch-card.orange { border-color:rgba(200,130,60,0.4); }
+  .arch-card.red { border-color:rgba(200,80,100,0.4); }
+  .arch-card .icon { font-size:16pt; }
+  .arch-card .name { color:#c0c0e0; font-size:8pt; font-weight:700; margin-top:3px; }
+  .arch-card .desc { color:#6060a0; font-size:7pt; margin-top:2px; }
+  .arch-card .tech { color:#667eea; font-size:6.5pt; margin-top:3px; font-family:monospace; }
+  .arch-arrow { text-align:center; color:#3030a0; font-size:12px; padding:2px 0; }
+
+  /* Flow diagram */
+  .flow { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; margin:15px 0; }
+  .flow-node { background:#0f0f24; border:1px solid #1e1e3a; border-radius:10px; padding:10px 16px; text-align:center; min-width:90px; }
+  .flow-node .num { background:#667eea; color:#fff; width:18px; height:18px; border-radius:50%; font-size:7pt; display:inline-flex; align-items:center; justify-content:center; margin-bottom:5px; }
+  .flow-node .title { color:#c0c0e0; font-size:8pt; font-weight:700; }
+  .flow-node .sub { color:#6060a0; font-size:7pt; margin-top:2px; }
+  .flow-arrow { color:#3030a0; font-size:16px; }
+  .flow-arrow-v { color:#3030a0; font-size:16px; display:block; text-align:center; }
+
+  /* Table */
+  table { width:100%; border-collapse:collapse; margin:12px 0; }
+  th { background:linear-gradient(135deg,#1a1a3a,#2d1b69); color:#a0a0e0; padding:9px 14px; text-align:left; font-size:8pt; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #2a2a5a; }
+  td { border-bottom:1px solid #12122a; padding:8px 14px; font-size:8.5pt; color:#a0a0c8; vertical-align:top; }
+  tr:nth-child(even) td { background:#0a0a1e; }
+  .highlight-row td { background:rgba(102,126,234,0.08) !important; color:#c0c0e0; font-weight:600; }
+
+  /* Quote/important */
+  .quote { background:linear-gradient(135deg,rgba(102,126,234,0.08),rgba(118,75,162,0.08)); border:1px solid rgba(102,126,234,0.2); border-radius:12px; padding:18px 22px; margin:15px 0; }
+  .quote p { color:#a0a0d0; font-size:9pt; line-height:1.9; }
+
+  /* Timeline */
+  .timeline { position:relative; padding-left:30px; margin:15px 0; }
+  .timeline::before { content:''; position:absolute; left:10px; top:5px; bottom:5px; width:2px; background:linear-gradient(to bottom,#667eea,#764ba2,#667eea); border-radius:2px; }
+  .timeline-item { position:relative; margin-bottom:18px; }
+  .timeline-item::before { content:''; position:absolute; left:-24px; top:6px; width:10px; height:10px; border-radius:50%; background:#667eea; border:2px solid #0a0a1e; }
+  .timeline-item .t-time { color:#667eea; font-size:7.5pt; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .timeline-item .t-title { color:#d0d0e8; font-size:9pt; font-weight:700; margin:3px 0; }
+  .timeline-item .t-desc { color:#7070a0; font-size:7.5pt; line-height:1.7; }
+
+  /* Tech stack pills */
+  .pills { display:flex; gap:7px; flex-wrap:wrap; margin:8px 0; }
+  .pill { background:#0f0f24; border:1px solid #1e1e3a; color:#9090c8; padding:4px 12px; border-radius:20px; font-size:7.5pt; }
+  .pill.blue { border-color:rgba(90,130,234,0.4); color:#6a8aea; }
+  .pill.purple { border-color:rgba(150,90,186,0.4); color:#a070cc; }
+  .pill.green { border-color:rgba(60,180,120,0.4); color:#50c87a; }
+
+  /* Cost breakdown */
+  .cost-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:15px 0; }
+  .cost-card { background:#0e0e22; border:1px solid #1e1e3a; border-radius:12px; padding:15px; text-align:center; }
+  .cost-card .amount { font-size:18pt; font-weight:900; color:#667eea; }
+  .cost-card .label { color:#7070a0; font-size:8pt; text-transform:uppercase; letter-spacing:1px; margin-top:5px; }
+  .cost-card .sub { color:#5050a0; font-size:7pt; margin-top:4px; }
+
+  /* 3D scene concept */
+  .scene-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:15px 0; }
+  .scene-card { background:#0e0e22; border:1px solid #1e1e3a; border-radius:10px; padding:15px; text-align:center; }
+  .scene-card .emoji { font-size:28pt; margin-bottom:8px; }
+  .scene-card .name { color:#c0c0e0; font-size:9pt; font-weight:700; }
+  .scene-card .desc { color:#7070a0; font-size:7.5pt; margin-top:4px; line-height:1.6; }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; }
+
+  .tag-row { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0; }
+  .tag { display:inline-block; padding:3px 12px; border-radius:12px; font-size:7.5pt; font-weight:700; }
+  .tag.b { background:rgba(90,130,234,0.15); color:#6a8aea; border:1px solid rgba(90,130,234,0.3); }
+  .tag.p { background:rgba(150,90,186,0.15); color:#a070cc; border:1px solid rgba(150,90,186,0.3); }
+  .tag.g { background:rgba(60,180,120,0.15); color:#50c87a; border:1px solid rgba(60,180,120,0.3); }
+  .tag.o { background:rgba(200,130,60,0.15); color:#c88040; border:1px solid rgba(200,130,60,0.3); }
+
+  .page-foot { background:#06060f; padding:20px 55px; border-top:1px solid #0e0e22; display:flex; justify-content:space-between; align-items:center; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 第1页：封面 + 愿景 ==================== -->
+<div class="page">
+  <div class="page-head">
+    <div class="badge">Complete Project Design</div>
+    <h1>共 生 境 <span>/ HumanTogether</span></h1>
+    <div class="subtitle">人机共存元宇宙平台 · 完整技术方案设计<br>「有温度的虚拟生活共同体」</div>
+    <div class="meta">
+      <div class="meta-item"><div class="label">项目名称</div><div class="value">共生境 · HumanTogether</div></div>
+      <div class="meta-item"><div class="label">设计版本</div><div class="value">v2.0 · 按共生境方案</div></div>
+      <div class="meta-item"><div class="label">目标规模</div><div class="value">100万 → 10亿用户</div></div>
+      <div class="meta-item"><div class="label">总投入</div><div class="value">Phase 1: ¥1000-1600万</div></div>
+      <div class="meta-item"><div class="label">设计依据</div><div class="value">共生境完整商业计划书</div></div>
+    </div>
+  </div>
+  <div class="page-body">
+
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">核心定位</div>
+        <div class="section-sub">Platform Core Positioning</div>
+      </div>
+    </div>
+
+    <div class="quote">
+      <p>「共生境」打破传统元宇宙"娱乐化、冰冷化"的局限，构建<strong style="color:#c0c0e0">人类与AI机器人共存、共生活、共创造</strong>的虚拟社会。以"解决人类孤独、迷茫、求助无门"为核心痛点，让AI机器人成为人类的<strong style="color:#c0c0e0">全天候陪伴者、帮助者、合作者</strong>，同时搭建可持续的虚拟经济体系，实现"虚拟美好带动现实美好"。</p>
+    </div>
+
+    <div class="three-col" style="margin:20px 0">
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:24pt;margin-bottom:8px">🌙</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">心灵陪伴</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:5px;line-height:1.7">AI机器人7×24小时倾听、共情、治愈孤独</div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:24pt;margin-bottom:8px">🤝</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">实用帮助</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:5px;line-height:1.7">职业指导、技能培训、机会对接</div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:24pt;margin-bottom:8px">💰</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">价值创造</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:5px;line-height:1.7">虚拟世界经济体系，劳动变现</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num">2</div>
+      <div>
+        <div class="section-title">目标用户</div>
+        <div class="section-sub">Target User Segments</div>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <th>用户群</th><th>规模</th><th>核心需求</th><th>产品价值</th>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">核心：迷茫孤独人群</td>
+        <td>2-3亿</td>
+        <td>陪伴、倾诉、找到方向</td>
+        <td>AI永远在线倾听 + 温暖回应</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">核心：失业/求职者</td>
+        <td>1-2亿</td>
+        <td>职业指导、机会对接、技能提升</td>
+        <td>AI职业导师 + 虚拟工作平台</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">次要：创作者/自由职业</td>
+        <td>5000万+</td>
+        <td>创作变现、技能展示、合作机会</td>
+        <td>虚拟工作室 + 经济体系</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">B端：企业/培训机构</td>
+        <td>百万级</td>
+        <td>精准触达用户、提供虚拟服务场景</td>
+        <td>入驻平台 + 虚拟招聘/培训</td>
+      </tr>
+    </table>
+
+    <div class="section-head">
+      <div class="section-num">3</div>
+      <div>
+        <div class="section-title">差异化优势</div>
+        <div class="section-sub">Differentiated Advantages vs. Competitors</div>
+      </div>
+    </div>
+
+    <div class="three-col">
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">情感差异化</div>
+        <div style="color:#a0a0c8;font-size:8pt;line-height:1.8">不做纯娱乐元宇宙，聚焦"心灵陪伴+实用帮助"，AI不再是工具，而是"虚拟公民"，与人类平等共生</div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">技术差异化</div>
+        <div style="color:#a0a0c8;font-size:8pt;line-height:1.8">AI机器人实现"拟人化、高共情、强能力"，不是简单对话工具，而是有记忆、有性格的虚拟伙伴</div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">经济差异化</div>
+        <div style="color:#a0a0c8;font-size:8pt;line-height:1.8">"人类创造+AI辅助+价值变现"闭环经济体系，用户既能获得帮助，也能创造收益，提升粘性</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">共生境 / HumanTogether · 技术方案 v2.0 · 按共生境商业计划书设计 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第2页：三期规划 ==================== -->
+<div class="page page-break">
+  <div class="page-head" style="padding:35px 55px">
+    <div class="badge">Phase Plan</div>
+    <h1>三期落地 <span>Roadmap</span></h1>
+    <div class="subtitle">MVP验证 → 核心完善 → 生态构建 · 总周期 24-36个月</div>
+  </div>
+  <div class="page-body" style="padding:30px 55px">
+
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">Phase 1 — MVP 最小可行版本</div>
+        <div class="section-sub">3-6个月 · 验证需求 · 种子用户 1-5万</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="phase-body" style="grid-template-columns:1.2fr 0.8fr;gap:25px">
+        <div>
+          <h4 style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">核心功能清单</h4>
+          <ul class="feat-list">
+            <li>虚拟街道场景（2D/2.5D渲染，进门感）</li>
+            <li>AI陪伴机器人（陪伴型+求助型，2-3种性格）</li>
+            <li>用户3D/2D形象创建系统</li>
+            <li>基础聊天 + 求助大厅（文字+语音）</li>
+            <li>机会发布板 v1（工作/项目/合作）</li>
+            <li>每日陪伴任务 + 打卡激励</li>
+            <li>用户注册/认证（手机号）</li>
+            <li>个人主页 + 技能标签</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">核心指标</h4>
+          <div class="metric-row"><span class="metric-label">目标用户</span><span class="metric-value">1-5万</span></div>
+          <div class="metric-row"><span class="metric-label">DAU目标</span><span class="metric-value">3000-5000</span></div>
+          <div class="metric-row"><span class="metric-label">AI对话量/天</span><span class="metric-value">5万+次</span></div>
+          <div class="metric-row"><span class="metric-label">任务闭环率</span><span class="metric-value">&gt;60%</span></div>
+          <div class="metric-row"><span class="metric-label">用户留存</span><span class="metric-value">&gt;40%（7日）</span></div>
+          <div class="metric-row"><span class="metric-label">研发周期</span><span class="metric-value">3-6个月</span></div>
+          <div class="metric-row"><span class="metric-label">投入</span><span class="metric-value" style="color:#c08060">¥400-600万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num" style="background:#3aaa6a">2</div>
+      <div>
+        <div class="section-title">Phase 2 — 核心功能完善版</div>
+        <div class="section-sub">6-12个月 · 完善体验 · 用户 5-20万</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="phase-body" style="grid-template-columns:1.2fr 0.8fr;gap:25px">
+        <div>
+          <h4 style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">核心功能清单</h4>
+          <ul class="feat-list">
+            <li>丰富虚拟场景（家、工作室、培训室、虚拟商店）</li>
+            <li>多类型AI机器人（陪伴/职业/心理/创作导师）</li>
+            <li>虚拟经济系统（虚拟货币「共币」、物品交易）</li>
+            <li>用户创作功能（虚拟物品、故事、教程）</li>
+            <li>基础技能培训功能（视频+AI答疑）</li>
+            <li>每日鼓励 + 心理治愈内容</li>
+            <li>师徒匹配系统</li>
+            <li>会员订阅（AI定制伙伴、高级功能）</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">核心指标</h4>
+          <div class="metric-row"><span class="metric-label">目标用户</span><span class="metric-value">5-20万</span></div>
+          <div class="metric-row"><span class="metric-label">DAU目标</span><span class="metric-value">1-3万</span></div>
+          <div class="metric-row"><span class="metric-label">付费率</span><span class="metric-value">3-5%</span></div>
+          <div class="metric-row"><span class="metric-label">月流水</span><span class="metric-value">¥50-200万</span></div>
+          <div class="metric-row"><span class="metric-label">经济系统GMV</span><span class="metric-value">¥100万+/月</span></div>
+          <div class="metric-row"><span class="metric-label">研发周期</span><span class="metric-value">6-12个月</span></div>
+          <div class="metric-row"><span class="metric-label">投入</span><span class="metric-value" style="color:#c08060">¥600-1000万</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num" style="background:#aa6a3a">3</div>
+      <div>
+        <div class="section-title">Phase 3 — 生态完善版</div>
+        <div class="section-sub">12-24个月 · 规模盈利 · 用户 100万+</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="phase-body" style="grid-template-columns:1.2fr 0.8fr;gap:25px">
+        <div>
+          <h4 style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">核心功能清单</h4>
+          <ul class="feat-list">
+            <li>全场景虚拟世界（城市、公园、企业园区、公益空间）</li>
+            <li>AI机器人个性化定制（性格/声音/形象/专长）</li>
+            <li>虚拟工作平台（真实就业对接、远程工作）</li>
+            <li>现实联动（技能认证、就业对接、公益活动）</li>
+            <li>B端入驻（品牌/培训机构/心理机构）</li>
+            <li>AI Agent生态系统（开放API + MCP）</li>
+            <li>跨平台Avatar（社交平台通用身份）</li>
+            <li>虚拟地产 + 空间租赁经济</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">核心指标</h4>
+          <div class="metric-row"><span class="metric-label">目标用户</span><span class="metric-value">100万+</span></div>
+          <div class="metric-row"><span class="metric-label">MAU</span><span class="metric-value">30万+</span></div>
+          <div class="metric-row"><span class="metric-label">付费率</span><span class="metric-value">8-15%</span></div>
+          <div class="metric-row"><span class="metric-label">年收入</span><span class="metric-value">¥5000万-1亿</span></div>
+          <div class="metric-row"><span class="metric-label">B端入驻</span><span class="metric-value">500+企业</span></div>
+          <div class="metric-row"><span class="metric-label">研发周期</span><span class="metric-value">12-24个月</span></div>
+          <div class="metric-row"><span class="metric-label">投入</span><span class="metric-value" style="color:#c08060">¥2000-5000万</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">共生境 / HumanTogether · 技术方案 v2.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第3页：技术架构 ==================== -->
+<div class="page page-break">
+  <div class="page-head" style="padding:35px 55px">
+    <div class="badge">Technical Architecture</div>
+    <h1>技术架构 <span>Design</span></h1>
+    <div class="subtitle">分层架构 + 微服务 + 3D渲染引擎 + AI对话 + 虚拟经济</div>
+  </div>
+  <div class="page-body" style="padding:30px 55px">
+
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">客户端技术选型</div>
+        <div class="section-sub">Cross-Platform Entry Points</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="arch-row" style="gap:10px">
+        <div class="arch-card blue">
+          <div class="icon">📱</div>
+          <div class="name">移动 App</div>
+          <div class="desc">Flutter · iOS + Android</div>
+          <div class="tech">理由：性能接近原生，开发效率高</div>
+        </div>
+        <div class="arch-card blue">
+          <div class="icon">🌐</div>
+          <div class="name">Web App</div>
+          <div class="desc">Unity WebGL · 2.5D渲染</div>
+          <div class="tech">理由：3D沉浸体验，跨浏览器</div>
+        </div>
+        <div class="arch-card blue">
+          <div class="icon">💬</div>
+          <div class="name">Telegram Bot</div>
+          <div class="desc">轻量入口·快速触达</div>
+          <div class="tech">理由：0门槛，海外增长快</div>
+        </div>
+        <div class="arch-card blue">
+          <div class="icon">🏢</div>
+          <div class="name">企业微信/钉钉</div>
+          <div class="desc">国内B端接入</div>
+          <div class="tech">理由：国内企业用户</div>
+        </div>
+        <div class="arch-card blue">
+          <div class="icon">🔗</div>
+          <div class="name">API / MCP</div>
+          <div class="desc">AI Agent接入</div>
+          <div class="tech">理由：开放生态</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num">2</div>
+      <div>
+        <div class="section-title">分层架构总览</div>
+        <div class="section-sub">7-Layer Architecture · From User to Infrastructure</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 1: Client -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 1 · 表现层 Client</div>
+        <div class="arch-row">
+          <div class="arch-card blue"><div class="icon">📱</div><div class="name">Flutter App</div><div class="tech">flutter + dart</div></div>
+          <div class="arch-card blue"><div class="icon">🌐</div><div class="name">Unity WebGL</div><div class="tech">C# + shader</div></div>
+          <div class="arch-card blue"><div class="icon">💬</div><div class="name">Bot/TG</div><div class="tech">python-telegram-bot</div></div>
+          <div class="arch-card blue"><div class="icon">🖥️</div><div class="name">管理后台</div><div class="tech">React + Ant Design</div></div>
+        </div>
+      </div>
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 2: CDN -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 2 · 分发层 CDN + 存储</div>
+        <div class="arch-row">
+          <div class="arch-card orange"><div class="icon">🌍</div><div class="name">CDN</div><div class="desc">阿里云/Cloudflare</div><div class="tech">3D模型/图片/视频</div></div>
+          <div class="arch-card orange"><div class="icon">🗄️</div><div class="name">OSS</div><div class="desc">对象存储 · EB级</div><div class="tech">3D资产/用户上传</div></div>
+          <div class="arch-card orange"><div class="icon">📦</div><div class="name">Redis</div><div class="desc">热点缓存</div><div class="tech">session/feed cache</div></div>
+        </div>
+      </div>
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 3: Gateway -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 3 · 网关层 API Gateway</div>
+        <div class="arch-row">
+          <div class="arch-card" style="border-color:rgba(200,150,80,0.4)"><div class="icon">🚦</div><div class="name">Kong</div><div class="desc">API路由+限流</div><div class="tech">JWT/OAuth2</div></div>
+          <div class="arch-card" style="border-color:rgba(200,150,80,0.4)"><div class="icon">🛡️</div><div class="name">WAF</div><div class="desc">防火墙</div><div class="tech">SQL注入/XSS防护</div></div>
+          <div class="arch-card" style="border-color:rgba(200,150,80,0.4)"><div class="icon">📊</div><div class="name">APM</div><div class="desc">全链路追踪</div><div class="tech">Jaeger/SkyWalking</div></div>
+        </div>
+      </div>
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 4: App Services -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 4 · 应用服务层 Microservices</div>
+        <div class="arch-row">
+          <div class="arch-card green"><div class="icon">👤</div><div class="name">用户服务</div><div class="tech">Go + Gin</div></div>
+          <div class="arch-card green"><div class="icon">🏠</div><div class="name">虚拟世界服务</div><div class="tech">Go + Leaf</div></div>
+          <div class="arch-card green"><div class="icon">🤝</div><div class="name">社交服务</div><div class="tech">Go + Gin</div></div>
+          <div class="arch-card green"><div class="icon">💰</div><div class="name">经济服务</div><div class="tech">Go + Redis</div></div>
+          <div class="arch-card green"><div class="icon">💼</div><div class="name">机会服务</div><div class="tech">Go + Gin</div></div>
+          <div class="arch-card green"><div class="icon">📚</div><div class="name">内容服务</div><div class="tech">Go + Gin</div></div>
+        </div>
+      </div>
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 5: AI -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 5 · AI智能层 AI/ML</div>
+        <div class="arch-row">
+          <div class="arch-card purple"><div class="icon">🤖</div><div class="name">对话引擎</div><div class="tech">Python + FastAPI + vLLM</div></div>
+          <div class="arch-card purple"><div class="icon">🎭</div><div class="name">情感计算</div><div class="tech">PyTorch + BERT情感分类</div></div>
+          <div class="arch-card purple"><div class="icon">📚</div><div class="name">RAG知识库</div><div class="tech">Milvus + LangChain</div></div>
+          <div class="arch-card purple"><div class="icon">🧠</div><div class="name">记忆系统</div><div class="tech">向量存储 + Redis</div></div>
+          <div class="arch-card purple"><div class="icon">🎯</div><div class="name">推荐系统</div><div class="tech">Python + TensorFlow</div></div>
+        </div>
+      </div>
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 6: Data -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 6 · 数据层 Data</div>
+        <div class="arch-row">
+          <div class="arch-card red"><div class="icon">🗄️</div><div class="name">TiDB</div><div class="desc">分布式MySQL</div><div class="tech">用户/订单/内容</div></div>
+          <div class="arch-card red"><div class="icon">📨</div><div class="name">Kafka</div><div class="desc">消息队列</div><div class="tech">事件驱动·10万+/秒</div></div>
+          <div class="arch-card red"><div class="icon">🔍</div><div class="name">Elasticsearch</div><div class="desc">全文搜索</div><div class="tech">用户/内容检索</div></div>
+          <div class="arch-card red"><div class="icon">🧮</div><div class="name">时序库</div><div class="desc">监控/行为数据</div><div class="tech">InfluxDB/TDengine</div></div>
+        </div>
+      </div>
+      <div class="arch-arrow">⬇️</div>
+
+      <!-- Layer 7: Infra -->
+      <div class="arch-layer">
+        <div class="arch-label">Layer 7 · 基础设施层 Infrastructure</div>
+        <div class="arch-row">
+          <div class="arch-card"><div class="icon">☸️</div><div class="name">Kubernetes</div><div class="tech">RKE2 · 自动扩缩容</div></div>
+          <div class="arch-card"><div class="icon">🔄</div><div class="name">多活部署</div><div class="tech">北京+上海+广州</div></div>
+          <div class="arch-card"><div class="icon">📈</div><div class="name">Prometheus</div><div class="tech">监控+告警</div></div>
+          <div class="arch-card"><div class="icon">📊</div><div class="name">Grafana</div><div class="tech">可视化仪表盘</div></div>
+          <div class="arch-card"><div class="icon">🔑</div><div class="name">KMS</div><div class="tech">密钥管理·数据加密</div></div>
+          <div class="arch-card"><div class="icon">📝</div><div class="name">日志中心</div><div class="tech">ELK·PB级存储</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">共生境 / HumanTogether · 技术方案 v2.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第4页：AI系统 + 虚拟世界 ==================== -->
+<div class="page page-break">
+  <div class="page-head" style="padding:35px 55px">
+    <div class="badge">AI & Virtual World</div>
+    <h1>AI系统 & 虚拟世界 <span>Engine</span></h1>
+    <div class="subtitle">拟人化AI机器人 + 2.5D虚拟场景 + 记忆系统 + 情感计算</div>
+  </div>
+  <div class="page-body" style="padding:30px 55px">
+
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">AI机器人引擎（核心差异化）</div>
+        <div class="section-sub">Emotional Companion AI · Not Just a Chatbot</div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">AI伙伴类型</div>
+          <table>
+            <tr><th>伙伴</th><th>性格</th><th>专长</th><th>Emoji</th></tr>
+            <tr><td style="color:#c0c0e0;font-weight:600">Luna</td><td>温柔倾听型</td><td>情感陪伴、心理治愈</td><td>🌙</td></tr>
+            <tr><td style="color:#c0c0e0;font-weight:600">Kai</td><td>冷静理性型</td><td>职业规划、技能指导</td><td>🌊</td></tr>
+            <tr><td style="color:#c0c0e0;font-weight:600">Nova</td><td>积极激励型</td><td>生活陪伴、目标激励</td><td>⭐</td></tr>
+            <tr><td style="color:#c0c0e0;font-weight:600">Milo</td><td>平和佛系型</td><td>放松冥想、压力舒缓</td><td>🌿</td></tr>
+            <tr><td style="color:#c0c0e0;font-weight:600">Sage</td><td>导师智慧型</td><td>技能培训、知识传授</td><td>📚</td></tr>
+          </table>
+        </div>
+        <div>
+          <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">AI核心能力</div>
+          <div class="feat-list">
+            <li>NLP自然对话：意图识别 + 槽位填充 + 对话管理</li>
+            <li>情感计算：情绪分类（焦虑/悲伤/孤独/开心）+ 共情响应</li>
+            <li>记忆系统：用户历史 + 偏好 + 人生阶段 + 向量检索</li>
+            <li>RAG知识库：心理知识 + 职业指导 + 技能教程 + 机会数据</li>
+            <li>个性化算法：千用户千AI（性格+能力+风格自适应）</li>
+            <li>主动交互：每日主动问候 + 陪伴任务 + 情绪预警</li>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:15px">
+        <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">对话处理流程</div>
+        <div class="flow">
+          <div class="flow-node"><div class="num">1</div><div class="title">用户输入</div><div class="sub">文本/语音/图片</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node"><div class="num">2</div><div class="title">安全检查</div><div class="sub">违禁词/敏感词</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node"><div class="num">3</div><div class="title">情感识别</div><div class="sub">BERT情绪分类</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node"><div class="num">4</div><div class="title">意图理解</div><div class="sub">分类+Slot填充</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node"><div class="num">5</div><div class="title">RAG检索</div><div class="sub">知识库上下文</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node"><div class="num">6</div><div class="title">LLM生成</div><div class="sub">Qwen/DeepSeek</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node"><div class="num">7</div><div class="title">记忆更新</div><div class="sub">向量+结构化</div></div>
+          <div class="flow-arrow">➡️</div>
+          <div class="flow-node" style="background:rgba(102,126,234,0.1);border-color:rgba(102,126,234,0.3)"><div class="num">8</div><div class="title">温暖响应</div><div class="sub">共情+行动建议</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num" style="background:#aa6a3a">2</div>
+      <div>
+        <div class="section-title">虚拟世界场景设计</div>
+        <div class="section-sub">2.5D Isometric Virtual World · Phase 1-3 渐进建设</div>
+      </div>
+    </div>
+
+    <div class="scene-grid">
+      <div class="scene-card">
+        <div class="emoji">🏘️</div>
+        <div class="name">共生街道</div>
+        <div class="desc">Phase 1 · 用户入口，展示平台氛围，结识AI伙伴</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">🏠</div>
+        <div class="name">我的小窝</div>
+        <div class="desc">Phase 2 · 私人空间，AI伙伴来访，虚拟物品装饰</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">💼</div>
+        <div class="name">求助大厅</div>
+        <div class="desc">Phase 1 · 发布求助，等待AI或真人帮助</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">🎓</div>
+        <div class="name">培训室</div>
+        <div class="desc">Phase 2 · 技能培训教室，AI导师授课</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">🏪</div>
+        <div class="name">虚拟商店</div>
+        <div class="desc">Phase 2 · 虚拟物品交易，AI伙伴服装/道具</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">🌳</div>
+        <div class="name">治愈花园</div>
+        <div class="desc">Phase 1 · 放松冥想，AI引导正念练习</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">🏛️</div>
+        <div class="name">城市广场</div>
+        <div class="desc">Phase 3 · 全场景，用户聚集，活动举办</div>
+      </div>
+      <div class="scene-card">
+        <div class="emoji">🏢</div>
+        <div class="name">企业园区</div>
+        <div class="desc">Phase 3 · B端入驻，虚拟办公/招聘</div>
+      </div>
+    </div>
+
+    <div class="arch" style="margin-top:15px">
+      <div style="color:#667eea;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">虚拟世界技术选型</div>
+      <div class="pills">
+        <span class="pill blue">Unity 2023 · 2.5D isometric 渲染</span>
+        <span class="pill blue">Cocos Creator · 轻量Web端</span>
+        <span class="pill purple">Photon · 多人实时同步（PUN2）</span>
+        <span class="pill purple">Normcore · 简化多人协作</span>
+        <span class="pill green">Redis · 虚拟世界状态同步</span>
+        <span class="pill green">WebSocket · 实时通信</span>
+        <span class="pill blue">Spine动画 · 角色表情/动作</span>
+        <span class="pill purple">AI NPC · 行为树+LLM</span>
+        <span class="pill green">地图TileMap · 2D地图编辑器</span>
+        <span class="pill blue">Protobuf · 高效网络序列化</span>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">共生境 / HumanTogether · 技术方案 v2.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第5页：实施计划 + 团队 + 成本 ==================== -->
+<div class="page page-break">
+  <div class="page-head" style="padding:35px 55px">
+    <div class="badge">Implementation</div>
+    <h1>实施计划 & 资源 <span>Roadmap</span></h1>
+    <div class="subtitle">12周冲刺 · 团队配置 · 成本估算 · 融资规划</div>
+  </div>
+  <div class="page-body" style="padding:30px 55px">
+
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">Phase 1 详细实施计划（12周）</div>
+        <div class="section-sub">Week-by-Week Sprint Plan</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="t-time">Week 1-2 · 基础设施</div>
+            <div class="t-title">搭建开发环境 + 架构设计</div>
+            <div class="t-desc">云服务器部署 · CI/CD流水线 · 数据库设计 · API规范确定 · 需求细化</div>
+          </div>
+          <div class="timeline-item">
+            <div class="t-time">Week 3-4 · 用户系统</div>
+            <div class="t-title">注册认证 + 个人主页</div>
+            <div class="t-desc">手机号注册 · JWT认证 · 头像创建系统 · 技能标签 · 基础UI组件库</div>
+          </div>
+          <div class="timeline-item">
+            <div class="t-time">Week 5-6 · AI对话核心</div>
+            <div class="t-title">AI对话引擎 + 情感识别</div>
+            <div class="t-desc">对话API接入 · RAG知识库搭建 · 5种AI伙伴性格 · 记忆系统v1 · 情感分类</div>
+          </div>
+          <div class="timeline-item">
+            <div class="t-time">Week 7-8 · 虚拟世界</div>
+            <div class="t-title">虚拟街道 + 求助大厅</div>
+            <div class="t-desc">2.5D场景渲染 · 用户avatar · 场景导航 · 求助大厅CRUD · WebSocket实时</div>
+          </div>
+          <div class="timeline-item">
+            <div class="t-time">Week 9-10 · 机会板 + 激励</div>
+            <div class="t-title">机会发布板 + 每日任务</div>
+            <div class="t-desc">机会CRUD · 分类检索 · 每日打卡 · 积分系统 · 会员基础功能</div>
+          </div>
+          <div class="timeline-item">
+            <div class="t-time">Week 11-12 · 收尾 + 上线</div>
+            <div class="t-title">灰度发布 + 运营监控</div>
+            <div class="t-desc">10%流量灰度 · Bug修复 · 数据埋点 · 监控告警 · 种子用户社群建立</div>
+          </div>
+        </div>
+      </div>
+      <div>
+
+        <div class="section-head" style="margin-top:0">
+          <div class="section-num" style="width:24px;height:24px;font-size:8pt">2</div>
+          <div>
+            <div class="section-title" style="font-size:11pt">团队配置（Phase 1）</div>
+          </div>
+        </div>
+
+        <table>
+          <tr><th>角色</th><th>人数</th><th>月成本</th><th>职责</th></tr>
+          <tr><td style="color:#c0c0e0">后端工程师</td><td>×2</td><td>¥20-30K</td><td>API·微服务·AI集成</td></tr>
+          <tr><td style="color:#c0c0e0">Unity/客户端工程师</td><td>×1</td><td>¥20-35K</td><td>虚拟世界·App开发</td></tr>
+          <tr><td style="color:#c0c0e0">AI/算法工程师</td><td>×1</td><td>¥25-40K</td><td>LLM·RAG·情感计算</td></tr>
+          <tr><td style="color:#c0c0e0">前端工程师</td><td>×1</td><td>¥15-25K</td><td>Web·管理后台</td></tr>
+          <tr><td style="color:#c0c0e0">产品经理</td><td>×1</td><td>¥15-25K</td><td>产品·运营·数据分析</td></tr>
+          <tr><td style="color:#c0c0e0">设计师</td><td>×1</td><td>¥12-20K</td><td>UI/UX·3D角色·场景</td></tr>
+          <tr style="background:rgba(102,126,234,0.1)">
+            <td style="color:#c0c0e0;font-weight:700">合计</td>
+            <td style="font-weight:700;color:#667eea">7人</td>
+            <td style="font-weight:700;color:#667eea">¥10-17万/月</td>
+            <td></td>
+          </tr>
+        </table>
+
+        <div class="section-head">
+          <div class="section-num" style="width:24px;height:24px;font-size:8pt">3</div>
+          <div>
+            <div class="section-title" style="font-size:11pt">成本估算（Phase 1 总投入 ¥400-600万）</div>
+          </div>
+        </div>
+
+        <div class="cost-grid">
+          <div class="cost-card">
+            <div class="amount">¥200万</div>
+            <div class="label">研发成本</div>
+            <div class="sub">人力·7人×6个月</div>
+          </div>
+          <div class="cost-card">
+            <div class="amount">¥100万</div>
+            <div class="label">LLM + 云服务</div>
+            <div class="sub">API·服务器·CDN</div>
+          </div>
+          <div class="cost-card">
+            <div class="amount">¥150万</div>
+            <div class="label">美术资产</div>
+            <div class="sub">3D角色·场景·动画</div>
+          </div>
+          <div class="cost-card">
+            <div class="amount">¥50万</div>
+            <div class="label">运营推广</div>
+            <div class="sub">种子用户·KOL</div>
+          </div>
+          <div class="cost-card">
+            <div class="amount">¥50万</div>
+            <div class="label">管理+法务</div>
+            <div class="sub">行政·合规·工商</div>
+          </div>
+          <div class="cost-card">
+            <div class="amount">¥50万</div>
+            <div class="label">储备金</div>
+            <div class="sub">不可预见费用</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num" style="background:#aa6a3a">4</div>
+      <div>
+        <div class="section-title">融资规划</div>
+        <div class="section-sub">Funding Roadmap</div>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <th>轮次</th><th>金额</th><th>出让股权</th><th>用途</th><th>目标</th>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:700">天使轮</td>
+        <td>¥500-1000万</td>
+        <td>10-15%</td>
+        <td>Phase 1研发+运营</td>
+        <td>MVP完成·1-5万用户</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:700">A轮</td>
+        <td>¥2000-5000万</td>
+        <td>8-12%</td>
+        <td>Phase 2完善+增长</td>
+        <td>5-20万用户·初步盈利</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:700">B轮</td>
+        <td>¥1-2亿</td>
+        <td>5-8%</td>
+        <td>Phase 3生态+B端拓展</td>
+        <td>100万+用户·规模化盈利</td>
+      </tr>
+    </table>
+
+  </div>
+  <div class="footer">共生境 / HumanTogether · 技术方案 v2.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+<!-- ==================== 第6页：商业模式 + 风险 ==================== -->
+<div class="page page-break">
+  <div class="page-head" style="padding:35px 55px">
+    <div class="badge">Business Model</div>
+    <h1>商业模式 & 风险 <span>Analysis</span></h1>
+    <div class="subtitle">收入来源 · 盈利预测 · 风险评估与应对</div>
+  </div>
+  <div class="page-body" style="padding:30px 55px">
+
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">收入来源（5大板块）</div>
+        <div class="section-sub">Revenue Streams</div>
+      </div>
+    </div>
+
+    <div class="three-col" style="margin-bottom:20px">
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="font-size:20pt;margin-bottom:8px">💎</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">会员订阅</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:6px;line-height:1.7">
+          AI伙伴定制（性格/声音/形象）<br>
+          高级功能解锁<br>
+          ¥9.9-99/月
+        </div>
+        <div style="margin-top:10px">
+          <span class="tag b">预计占比40%</span>
+        </div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="font-size:20pt;margin-bottom:8px">🪙</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">虚拟经济</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:6px;line-height:1.7">
+          虚拟货币「共币」充值<br>
+          物品交易抽佣 5-10%<br>
+          虚拟地产/空间租赁
+        </div>
+        <div style="margin-top:10px">
+          <span class="tag p">预计占比30%</span>
+        </div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="font-size:20pt;margin-bottom:8px">🏢</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">B端入驻</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:6px;line-height:1.7">
+          企业虚拟店铺入驻费<br>
+          培训结构虚拟教室<br>
+          招聘平台对接服务
+        </div>
+        <div style="margin-top:10px">
+          <span class="tag g">预计占比15%</span>
+        </div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:15px">
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="font-size:16pt;margin-bottom:6px">📺</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">广告收入</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:5px;line-height:1.7">信息流广告·品牌合作·活动冠名</div>
+        <div style="margin-top:8px"><span class="tag o">预计占比10%</span></div>
+      </div>
+      <div style="background:#0e0e22;border:1px solid #1e1e3a;border-radius:12px;padding:18px">
+        <div style="font-size:16pt;margin-bottom:6px">🧠</div>
+        <div style="color:#c0c0e0;font-weight:700;font-size:9pt">心理咨询分成</div>
+        <div style="color:#7070a0;font-size:7.5pt;margin-top:5px;line-height:1.7">专业心理咨询师预约·平台抽佣20%</div>
+        <div style="margin-top:8px"><span class="tag" style="background:rgba(200,80,100,0.15);color:#c85070;border:1px solid rgba(200,80,100,0.3)">预计占比5%</span></div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-num" style="background:#aa3a5a">2</div>
+      <div>
+        <div class="section-title">盈利预测</div>
+        <div class="section-sub">Profitability Forecast · 3 Years</div>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <th></th><th>第1年</th><th>第2年</th><th>第3年</th>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">用户规模</td>
+        <td>1-20万</td><td>20-100万</td><td>100-500万</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">付费率</td>
+        <td>2-3%</td><td>5-8%</td><td>10-15%</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">年收入</td>
+        <td style="color:#c08060">¥200-500万</td><td style="color:#c08060">¥1000-3000万</td><td style="color:#c08060">¥5000万-1亿</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">主要来源</td>
+        <td>会员订阅</td><td>会员+虚拟经济+B端</td><td>全场景覆盖</td>
+      </tr>
+    </table>
+
+    <div class="section-head">
+      <div class="section-num" style="background:#3aaa6a">3</div>
+      <div>
+        <div class="section-title">风险评估与应对</div>
+        <div class="section-sub">Risk Assessment</div>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <th>风险类型</th><th>具体风险</th><th>应对方案</th>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">技术风险</td>
+        <td>AI共情能力不足·3D卡顿·数据安全</td>
+        <td>组建专业AI团队·持续迭代模型·加强数据加密·与专业技术服务商合作</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">用户风险</td>
+        <td>用户粘性不足·需求验证失败·UGC质量低</td>
+        <td>持续收集反馈·优化产品体验·建立内容审核机制·完善激励体系</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">商业风险</td>
+        <td>盈利不及预期·B端入驻困难·市场竞争加剧</td>
+        <td>优化盈利模型·降低付费门槛·加强B端合作·强化差异化优势</td>
+      </tr>
+      <tr>
+        <td style="color:#c0c0e0;font-weight:600">政策风险</td>
+        <td>元宇宙监管收紧·AI生成内容规定</td>
+        <td>合规经营·聚焦社会价值·主动对接监管部门·规避政策风险</td>
+      </tr>
+    </table>
+
+  </div>
+  <div class="footer">共生境 / HumanTogether · 技术方案 v2.0 · ThinkPad小龙虾 🦞</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛒 共生境商店</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #FFF9F4;
+            color: #1a3a52;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%);
+            padding: 24px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(26, 58, 82, 0.3);
+        }
+
+        .header h1 {
+            color: #FFD700;
+            font-size: 28px;
+            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.15);
+            color: #FFF9F4;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .coin-display {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1a3a52;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.4);
+            animation: coinPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes coinPulse {
+            0%, 100% { box-shadow: 0 2px 10px rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 2px 25px rgba(255, 215, 0, 0.7); }
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+            background: #FFF9F4;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: 2px solid #E07A5F;
+            background: transparent;
+            color: #E07A5F;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(224, 122, 95, 0.1);
+        }
+
+        .tab.active {
+            background: #E07A5F;
+            color: white;
+            box-shadow: 0 4px 15px rgba(224, 122, 95, 0.4);
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 500px) {
+            .shop-grid { grid-template-columns: 1fr; }
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(224, 122, 95, 0.2);
+        }
+
+        .item-card.locked {
+            opacity: 0.7;
+        }
+
+        .item-emoji {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .item-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a3a52;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .item-price {
+            text-align: center;
+            color: #E07A5F;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .item-price .coin-icon {
+            color: #FFD700;
+        }
+
+        .item-desc {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .locked-msg {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .gift-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #E07A5F, #d4685a);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .gift-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(224, 122, 95, 0.4);
+        }
+
+        .gift-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: #FFF9F4;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h3 {
+            color: #1a3a52;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .companion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .companion-chip {
+            padding: 10px 18px;
+            border: 2px solid #E07A5F;
+            background: transparent;
+            color: #E07A5F;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .companion-chip:hover, .companion-chip.selected {
+            background: #E07A5F;
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, #E07A5F, #d4685a);
+            color: white;
+        }
+
+        .modal-btn.cancel {
+            background: #ddd;
+            color: #666;
+        }
+
+        /* Celebration */
+        .celebration {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 2000;
+            pointer-events: none;
+        }
+
+        .celebration.show { display: block; }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: fall 3s ease-out forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .success-toast {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            z-index: 2001;
+            text-align: center;
+        }
+
+        .success-toast.show { display: block; animation: popIn 0.5s ease; }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .success-toast .icon { font-size: 60px; margin-bottom: 15px; }
+        .success-toast h3 { color: #E07A5F; font-size: 22px; }
+        .success-toast p { color: #666; margin-top: 8px; }
+
+        .error-toast {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4d4d;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 2001;
+            font-weight: 500;
+        }
+
+        .error-toast.show { display: block; animation: slideUp 0.3s ease; }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon { font-size: 60px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/3d" class="back-btn">← 返回</a>
+    <h1>🛒 共生境商店</h1>
+    <div class="coin-display" id="coinDisplay">🪙 加载中...</div>
+</div>
+
+<div class="tabs" id="tabs">
+    <button class="tab active" data-type="all">全部</button>
+    <button class="tab" data-type="furniture">🛏️家具</button>
+    <button class="tab" data-type="clothing">👗衣服</button>
+    <button class="tab" data-type="decoration">🖼️装饰</button>
+</div>
+
+<div id="shopContent">
+    <div class="loading">加载中...</div>
+</div>
+
+<!-- Companion Selection Modal -->
+<div class="modal-overlay" id="companionModal">
+    <div class="modal">
+        <h3>🎁 送给哪个AI？</h3>
+        <div class="companion-list" id="companionList">
+            <button class="companion-chip" data-companion="Luna">🌙 Luna</button>
+            <button class="companion-chip" data-companion="Kai">⚡ Kai</button>
+            <button class="companion-chip" data-companion="Nova">✨ Nova</button>
+            <button class="companion-chip" data-companion="Milo">🌿 Milo</button>
+            <button class="companion-chip" data-companion="Sage">📚 Sage</button>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+            <button class="modal-btn confirm" id="confirmBtn" onclick="confirmPurchase()">确认购买</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="success-toast" id="successToast">
+    <div class="icon">🎉</div>
+    <h3>购买成功！</h3>
+    <p id="successMsg">礼物已送给 Luna~</p>
+</div>
+
+<!-- Error Toast -->
+<div class="error-toast" id="errorToast"></div>
+
+<!-- Celebration Confetti -->
+<div class="celebration" id="celebration"></div>
+
+<script>
+let allItems = [];
+let userCoins = 0;
+let selectedItem = null;
+let selectedCompanion = null;
+
+const companions = ['Luna', 'Kai', 'Nova', 'Milo', 'Sage'];
+
+// Load data
+async function loadShop() {
+    try {
+        const [shopRes, statsRes] = await Promise.all([
+            fetch('/api/shop'),
+            fetch('/api/stats')
+        ]);
+        const shopData = await shopRes.json();
+        const statsData = await statsRes.json();
+
+        allItems = shopData.items || [];
+        userCoins = statsData.coins || 0;
+
+        document.getElementById('coinDisplay').textContent = `🪙 ${userCoins}`;
+        renderItems('all');
+    } catch (e) {
+        document.getElementById('shopContent').innerHTML =
+            `<div class="empty-state"><div class="icon">😢</div><p>加载失败，请刷新重试</p></div>`;
+    }
+}
+
+// Render items by type
+function renderItems(type) {
+    const items = type === 'all' ? allItems : allItems.filter(i => i.item_type === type);
+
+    if (items.length === 0) {
+        document.getElementById('shopContent').innerHTML =
+            `<div class="empty-state"><div class="icon">🏪</div><p>暂无商品</p></div>`;
+        return;
+    }
+
+    const html = `<div class="shop-grid">${items.map(item => {
+        const isLocked = item.unlocks_at_intimacy > 0;
+        const lockedText = isLocked ? `🔒 需要亲密度 ${item.unlocks_at_intimacy}` : '';
+        return `
+        <div class="item-card ${isLocked ? 'locked' : ''}">
+            <span class="item-emoji">${item.emoji}</span>
+            <div class="item-name">${item.name}</div>
+            <div class="item-price"><span class="coin-icon">🪙</span> ${item.price}</div>
+            <div class="item-desc">${item.description}</div>
+            ${isLocked ? `<div class="locked-msg">${lockedText}</div>` : ''}
+            <button class="gift-btn"
+                data-id="${item.id}"
+                ${isLocked ? 'disabled' : ''}
+                onclick="selectItem(${item.id})">
+                🎁 送给 ${item.for_companion || 'AI'}
+            </button>
+        </div>`;
+    }).join('')}</div>`;
+
+    document.getElementById('shopContent').innerHTML = html;
+}
+
+// Tab switching
+document.getElementById('tabs').addEventListener('click', e => {
+    if (e.target.classList.contains('tab')) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        renderItems(e.target.dataset.type);
+    }
+});
+
+// Select item to purchase
+function selectItem(itemId) {
+    selectedItem = allItems.find(i => i.id === itemId);
+    selectedCompanion = null;
+
+    // Reset companion selection
+    document.querySelectorAll('.companion-chip').forEach(c => c.classList.remove('selected'));
+    document.getElementById('confirmBtn').disabled = true;
+
+    document.getElementById('companionModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('companionModal').classList.remove('show');
+    selectedItem = null;
+    selectedCompanion = null;
+}
+
+// Companion selection
+document.getElementById('companionList').addEventListener('click', e => {
+    if (e.target.classList.contains('companion-chip')) {
+        document.querySelectorAll('.companion-chip').forEach(c => c.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedCompanion = e.target.dataset.companion;
+        document.getElementById('confirmBtn').disabled = false;
+    }
+});
+
+async function confirmPurchase() {
+    if (!selectedItem || !selectedCompanion) return;
+
+    closeModal();
+
+    try {
+        const res = await fetch('/api/buy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                item_id: selectedItem.id,
+                companion: selectedCompanion
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showCelebration(selectedCompanion);
+            loadShop(); // Refresh
+        } else {
+            showError(data.error || '购买失败');
+        }
+    } catch (e) {
+        showError('网络错误，请重试');
+    }
+}
+
+function showCelebration(companion) {
+    // Confetti
+    const celebration = document.getElementById('celebration');
+    const colors = ['#E07A5F', '#FFD700', '#FFA500', '#81C784', '#64B5F6', '#BA68C8'];
+    celebration.innerHTML = '';
+    for (let i = 0; i < 60; i++) {
+        const conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.style.left = Math.random() * 100 + '%';
+        conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+        conf.style.animationDelay = Math.random() * 1 + 's';
+        conf.style.animationDuration = (2 + Math.random() * 2) + 's';
+        celebration.appendChild(conf);
+    }
+    celebration.classList.add('show');
+
+    document.getElementById('successMsg').textContent = `礼物已送给 ${companion}~`;
+    document.getElementById('successToast').classList.add('show');
+
+    setTimeout(() => {
+        celebration.classList.remove('show');
+        document.getElementById('successToast').classList.remove('show');
+    }, 2500);
+}
+
+function showError(msg) {
+    const toast = document.getElementById('errorToast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Init
+loadShop();
+</script>
+</body>
+</html>

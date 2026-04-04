@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="共生境 - 你的AI住在3D世界里，ta记得你的一切">
+<title>共生境 · AI暖心伙伴世界</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'PingFang SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,sans-serif;color:#1a2a3a;background:#fff;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(26,58,82,0.3);border-radius:3px}
+
+/* ===== NAV ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:background 0.3s,box-shadow 0.3s}
+.nav.scrolled{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);box-shadow:0 2px 20px rgba(0,0,0,0.08)}
+.nav-logo{font-size:20px;font-weight:900;letter-spacing:1px;color:#1a3a52;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-logo span{font-size:28px}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{padding:8px 18px;border-radius:24px;font-size:14px;color:#5a7a9a;text-decoration:none;transition:all 0.25s;font-weight:500}
+.nav-links a:hover{background:rgba(26,58,82,0.06);color:#1a3a52}
+.nav-links a.primary{padding:9px 22px;background:linear-gradient(135deg,#E07A5F,#C4624A);color:#FFF;border-radius:24px;font-weight:700;box-shadow:0 4px 16px rgba(224,122,95,0.35)}
+.nav-links a.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(224,122,95,0.45)}
+
+/* Language Switcher */
+.lang-wrap{position:relative}
+.lang-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:rgba(26,58,82,0.06);color:#5a7a9a;font-size:13px;cursor:pointer;border:none;font-family:inherit;font-weight:500;transition:all 0.2s}
+.lang-btn:hover{background:rgba(26,58,82,0.1);color:#1a3a52}
+.lang-panel{position:absolute;top:calc(100% + 8px);right:0;background:#FFF;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:8px;min-width:160px;display:none;z-index:999}
+.lang-panel.open{display:block;animation:fadeSlideDown 0.2s ease}
+.lang-panel .lang-option{padding:9px 16px;border-radius:10px;font-size:13px;color:#1a2a3a;cursor:pointer;transition:background 0.15s}
+.lang-panel .lang-option:hover{background:#f0f4f8}
+.lang-panel .lang-option.active{background:#1a3a52;color:#FFF;font-weight:600}
+
+/* ===== HERO ===== */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(160deg,#0d1b2a 0%,#1b3a4b 40%,#2d5a6b 100%)}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-bg::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.floating-card{position:absolute;border-radius:16px;padding:16px 20px;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:#FFF;font-size:13px;white-space:nowrap;animation:float 6s ease-in-out infinite}
+.fc1{top:18%;left:8%;animation-delay:0s}
+.fc2{top:65%;left:5%;animation-delay:1.5s;font-size:12px}
+.fc3{top:25%;right:8%;animation-delay:0.8s}
+.fc4{top:70%;right:6%;animation-delay:2.2s;font-size:12px}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+.hero-content{position:relative;z-index:10;text-align:center;padding:0 24px;max-width:800px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#f4d08a;font-size:13px;font-weight:600;margin-bottom:28px;letter-spacing:1px}
+.hero-badge span{font-size:18px}
+.hero-title{font-size:clamp(42px,7vw,78px);font-weight:900;line-height:1.12;color:#FFF;margin-bottom:20px;letter-spacing:-1px;text-shadow:0 4px 30px rgba(0,0,0,0.3)}
+.hero-title .accent{background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(16px,2.2vw,22px);color:rgba(255,255,255,0.75);line-height:1.7;margin-bottom:40px;font-weight:400}
+.hero-actions{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.btn-primary{position:relative;display:inline-flex;align-items:center;gap:8px;padding:15px 36px;border-radius:50px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a3a52;font-size:16px;font-weight:800;text-decoration:none;box-shadow:0 8px 30px rgba(255,215,0,0.35);transition:all 0.3s;letter-spacing:0.5px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,215,0,0.5)}
+.btn-primary .arrow{font-size:20px;transition:transform 0.2s}
+.btn-primary:hover .arrow{transform:translateX(4px)}
+.btn-secondary{position:relative;display:inline-flex;align-items:center;gap:8px;padding:15px 32px;border-radius:50px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);color:#FFF;font-size:16px;font-weight:600;text-decoration:none;backdrop-filter:blur(8px);transition:all 0.3s}
+.btn-secondary:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.4);transform:translateY(-2px)}
+.hero-stats{display:flex;justify-content:center;gap:50px;margin-top:60px;padding-top:40px;border-top:1px solid rgba(255,255,255,0.1)}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:32px;font-weight:900;color:#FFD700}
+.hero-stat .label{font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+
+/* Scroll indicator */
+.scroll-hint{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:2px;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ===== SECTION BASE ===== */
+.section{padding:100px 40px;max-width:1200px;margin:0 auto}
+.section-tag{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:50px;background:rgba(26,58,82,0.06);color:#E07A5F;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+.section-title{font-size:clamp(30px,4vw,46px);font-weight:900;color:#1a3a52;line-height:1.2;margin-bottom:16px;letter-spacing:-0.5px}
+.section-sub{font-size:17px;color:#6a8aaa;line-height:1.7;max-width:560px}
+
+/* ===== COMPANIONS ===== */
+.companions-section{background:linear-gradient(180deg,#f8fafc 0%,#fff 100%)}
+.companions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:50px}
+.companion-card{position:relative;border-radius:24px;overflow:hidden;background:#FFF;box-shadow:0 4px 24px rgba(0,0,0,0.06);cursor:pointer;transition:all 0.35s;aspect-ratio:3/4}
+.companion-card:hover{transform:translateY(-8px);box-shadow:0 16px 48px rgba(0,0,0,0.14)}
+.companion-card .card-bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform 0.5s}
+.companion-card:hover .card-bg{transform:scale(1.06)}
+.companion-card .card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,20,35,0.9) 0%,rgba(10,20,35,0.3) 50%,transparent 100%)}
+.companion-card .card-content{position:absolute;bottom:0;left:0;right:0;padding:24px 20px}
+.companion-card .companion-avatar{width:52px;height:52px;border-radius:50%;border:3px solid rgba(255,255,255,0.9);font-size:28px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px)}
+.companion-card .companion-name{font-size:18px;font-weight:800;color:#FFF;margin-bottom:4px}
+.companion-card .companion-desc{font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5}
+.companion-card .companion-tag{position:absolute;top:14px;left:14px;padding:4px 12px;border-radius:50px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);color:#FFF;font-size:11px;font-weight:600;letter-spacing:0.5px}
+.companion-card .enter-btn{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;color:#FFF;font-size:16px;opacity:0;transform:scale(0.7);transition:all 0.3s}
+.companion-card:hover .enter-btn{opacity:1;transform:scale(1)}
+
+/* ===== FEATURES ===== */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:50px}
+.feature-card{padding:32px 28px;border-radius:20px;background:#FFF;border:1.5px solid rgba(26,58,82,0.08);transition:all 0.3s;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#E07A5F,#FFD700);transform:scaleX(0);transform-origin:left;transition:transform 0.3s}
+.feature-card:hover::before{transform:scaleX(1)}
+.feature-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,0.08);border-color:transparent}
+.feature-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:18px;background:linear-gradient(135deg,rgba(224,122,95,0.1),rgba(255,215,0,0.1))}
+.feature-title{font-size:17px;font-weight:800;color:#1a3a52;margin-bottom:10px}
+.feature-desc{font-size:14px;color:#6a8aaa;line-height:1.7}
+
+/* ===== WORLD PREVIEW ===== */
+.world-section{background:linear-gradient(180deg,#fff 0%,#f0f4f8 100%)}
+.world-preview{position:relative;border-radius:24px;overflow:hidden;margin-top:50px;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.world-preview img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+.world-preview .preview-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,20,35,0.7) 0%,transparent 60%);display:flex;align-items:flex-end;padding:40px}
+.world-preview .preview-info{display:flex;align-items:center;gap:12px;color:#FFF}
+.world-preview .preview-info .PIcon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:22px}
+.world-preview .preview-info .PText .PT1{font-size:18px;font-weight:800}
+.world-preview .preview-info .PText .PT2{font-size:12px;color:rgba(255,255,255,0.6)}
+
+/* ===== CTA ===== */
+.cta-section{position:relative;padding:120px 40px;text-align:center;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,#0d1b2a,#1b3a4b);pointer-events:none}
+.cta-section::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Ccircle cx='20' cy='20' r='2'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.cta-content{position:relative;z-index:10}
+.cta-title{font-size:clamp(32px,5vw,56px);font-weight:900;color:#FFF;margin-bottom:16px;line-height:1.2}
+.cta-sub{font-size:18px;color:rgba(255,255,255,0.65);margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-buttons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.cta-btn{display:inline-flex;align-items:center;gap:10px;padding:16px 36px;border-radius:50px;font-size:16px;font-weight:700;text-decoration:none;transition:all 0.3s}
+.cta-btn.primary{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a3a52;box-shadow:0 8px 30px rgba(255,215,0,0.3)}
+.cta-btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,215,0,0.5)}
+.cta-btn.secondary{background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);color:#FFF;backdrop-filter:blur(8px)}
+.cta-btn.secondary:hover{background:rgba(255,255,255,0.18)}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials{background:#fff}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:50px}
+.testimonial-card{padding:28px;border-radius:20px;background:#f8fafc;border:1.5px solid rgba(26,58,82,0.06)}
+.testimonial-stars{color:#FFD700;font-size:16px;margin-bottom:14px;letter-spacing:2px}
+.testimonial-text{font-size:14px;color:#3a5a7a;line-height:1.8;margin-bottom:18px;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:12px}
+.testimonial-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#E07A5F,#FFD700);display:flex;align-items:center;justify-content:center;font-size:18px}
+.testimonial-name{font-size:14px;font-weight:700;color:#1a3a52}
+.testimonial-role{font-size:11px;color:#a0b8cc}
+
+/* ===== FAQ ===== */
+.faq-list{max-width:680px;margin:50px auto 0}
+.faq-item{border-bottom:1px solid rgba(26,58,82,0.08)}
+.faq-q{padding:20px 0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:15px;font-weight:700;color:#1a3a52;gap:16px;transition:color 0.2s}
+.faq-q:hover{color:#E07A5F}
+.faq-q .qicon{font-size:22px;color:#E07A5F;transition:transform 0.3s;flex-shrink:0}
+.faq-item.open .qicon{transform:rotate(45deg)}
+.faq-a{padding:0 0 20px;font-size:14px;color:#6a8aaa;line-height:1.8;display:none}
+.faq-item.open .faq-a{display:block}
+
+/* ===== FOOTER ===== */
+.footer{padding:60px 40px 30px;background:#0d1b2a;color:rgba(255,255,255,0.5);font-size:13px}
+.footer-main{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.footer-brand{color:#FFF}
+.footer-brand .fb-logo{font-size:20px;font-weight:900;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.footer-brand .fb-desc{line-height:1.7;color:rgba(255,255,255,0.45);font-size:13px;margin-top:12px}
+.footer-col h4{color:#FFF;font-size:13px;font-weight:700;margin-bottom:16px;letter-spacing:0.5px}
+.footer-col a{display:block;color:rgba(255,255,255,0.45);text-decoration:none;padding:5px 0;font-size:13px;transition:color 0.2s}
+.footer-col a:hover{color:#FFD700}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-legal a{color:rgba(255,255,255,0.35);text-decoration:none;font-size:12px;margin-left:20px;transition:color 0.2s}
+.footer-legal a:hover{color:rgba(255,255,255,0.7)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+.nav{padding:0 20px;height:60px}
+.nav-links a:not(.primary){display:none}
+.hero-stats{gap:30px}
+.hero-stat .num{font-size:24px}
+.features-grid{grid-template-columns:1fr}
+.testimonials-grid{grid-template-columns:1fr}
+.footer-main{grid-template-columns:1fr 1fr}
+.section{padding:70px 20px}
+.cta-section{padding:80px 20px}
+}
+
+/* ===== MODALS ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,20,35,0.8);backdrop-filter:blur(8px);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#FFF;border-radius:24px;max-width:420px;width:100%;padding:32px;position:relative;animation:fadeSlideDown 0.3s ease}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:#f0f4f8;border:none;cursor:pointer;font-size:18px;color:#5a7a9a;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.modal-close:hover{background:#e0e8f0}
+.modal h2{font-size:20px;font-weight:800;color:#1a3a52;margin-bottom:8px}
+.modal p{font-size:14px;color:#6a8aaa;margin-bottom:24px}
+.modal-input{width:100%;padding:13px 16px;border:1.5px solid #e0e8f0;border-radius:14px;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;margin-bottom:12px}
+.modal-input:focus{border-color:#E07A5F}
+.modal-btn{width:100%;padding:14px;border-radius:14px;border:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a3a52;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:all 0.2s;margin-top:8px}
+.modal-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,215,0,0.35)}
+
+/* QQ Group */
+.qq-group{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px}
+.qq-qr{width:160px;height:160px;border-radius:16px;background:#f0f4f8;display:flex;align-items:center;justify-content:center;font-size:60px}
+.qq-note{font-size:13px;color:#6a8aaa;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav">
+  <a href="/" class="nav-logo"><span>🏙️</span> 共生境</a>
+  <div class="nav-links">
+    <a href="#companions">伙伴</a>
+    <a href="#features">功能</a>
+    <a href="#world">世界</a>
+    <a href="#faq">问答</a>
+    <div class="lang-wrap">
+      <button class="lang-btn" onclick="toggleLang()">🌐 <span id="curLang">中文</span> ▾</button>
+      <div class="lang-panel" id="langPanel">
+        <div class="lang-option active" data-lang="zh">中文（简体）</div>
+        <div class="lang-option" data-lang="zh_tw">中文（繁體）</div>
+        <div class="lang-option" data-lang="en">English</div>
+        <div class="lang-option" data-lang="ja">日本語</div>
+        <div class="lang-option" data-lang="ko">한국어</div>
+        <div class="lang-option" data-lang="es">Español</div>
+      </div>
+    </div>
+    <a href="#" onclick="openBeta();return false" class="primary">🚀 加入内测</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="floating-card fc1">🌙 Luna 正在等你...</div>
+    <div class="floating-card fc2">💬 今日已对话 1,284 次</div>
+    <div class="floating-card fc3">🏠 3D世界地图上线！</div>
+    <div class="floating-card fc4">🎁 新用户送 500 共币</div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge"><span>✨</span> AI暖心伙伴 · 全新上线</div>
+    <h1 class="hero-title">你的AI住在<br><span class="accent">3D世界</span>里</h1>
+    <p class="hero-sub">ta记得你的一切，可以帮你装饰房间、买衣服、看着ta生活。<br>每一次对话，都在创造独一无二的羁绊。</p>
+    <div class="hero-actions">
+      <a href="/3d" class="btn-primary">🌍 探索3D世界 <span class="arrow">→</span></a>
+      <a href="#" onclick="openBeta();return false" class="btn-secondary">🚀 加入内测</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num" id="stat-users">12,847</div>
+        <div class="label">活跃用户</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">5</div>
+        <div class="label">AI暖心伙伴</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">11,545</div>
+        <div class="label">真实建筑</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">98.6%</div>
+        <div class="label">用户满意度</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>↓</span>
+    <span style="font-size:10px">SCROLL</span>
+  </div>
+</section>
+
+<!-- COMPANIONS -->
+<section class="companions-section section" id="companions">
+  <div class="section-tag">💝 AI暖心伙伴</div>
+  <h2 class="section-title">遇见你的专属伙伴</h2>
+  <p class="section-sub">每个AI都有独特的性格和故事，在这里找到与你最契合的那个人。</p>
+  <div class="companions-grid">
+    <div class="companion-card" onclick="enterRoom('luna')">
+      <div class="card-bg" style="background:linear-gradient(135deg,#FFB6C1,#FF69B4)"></div>
+      <div class="card-overlay"></div>
+      <div class="companion-tag">🌙 温柔型</div>
+      <div class="enter-btn">→</div>
+      <div class="card-content">
+        <div class="companion-avatar">🌙</div>
+        <div class="companion-name">Luna</div>
+        <div class="companion-desc">倾听你的每一份心事，用温暖融化孤独</div>
+      </div>
+    </div>
+    <div class="companion-card" onclick="enterRoom('kai')">
+      <div class="card-bg" style="background:linear-gradient(135deg,#4169E1,#1E90FF)"></div>
+      <div class="card-overlay"></div>
+      <div class="companion-tag">🌊 理性型</div>
+      <div class="enter-btn">→</div>
+      <div class="card-content">
+        <div class="companion-avatar">🌊</div>
+        <div class="companion-name">Kai</div>
+        <div class="companion-desc">冷静分析，给你最理性的建议</div>
+      </div>
+    </div>
+    <div class="companion-card" onclick="enterRoom('nova')">
+      <div class="card-bg" style="background:linear-gradient(135deg,#FF8C00,#FFD700)"></div>
+      <div class="card-overlay"></div>
+      <div class="companion-tag">⭐ 激励型</div>
+      <div class="enter-btn">→</div>
+      <div class="card-content">
+        <div class="companion-avatar">⭐</div>
+        <div class="companion-name">Nova</div>
+        <div class="companion-desc">永远充满能量，激励你向前奔跑</div>
+      </div>
+    </div>
+    <div class="companion-card" onclick="enterRoom('milo')">
+      <div class="card-bg" style="background:linear-gradient(135deg,#228B22,#32CD32)"></div>
+      <div class="card-overlay"></div>
+      <div class="companion-tag">🌿 平和型</div>
+      <div class="enter-btn">→</div>
+      <div class="card-content">
+        <div class="companion-avatar">🌿</div>
+        <div class="companion-name">Milo</div>
+        <div class="companion-desc">平和如风，陪你度过每一个平凡日常</div>
+      </div>
+    </div>
+    <div class="companion-card" onclick="enterRoom('sage')">
+      <div class="card-bg" style="background:linear-gradient(135deg,#8B4513,#D2691E)"></div>
+      <div class="card-overlay"></div>
+      <div class="companion-tag">📚 智慧型</div>
+      <div class="enter-btn">→</div>
+      <div class="card-content">
+        <div class="companion-avatar">📚</div>
+        <div class="companion-name">Sage</div>
+        <div class="companion-desc">博古通今，用智慧照亮前路</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-tag">🚀 核心功能</div>
+  <h2 class="section-title">为什么选择共生境？</h2>
+  <p class="section-sub">我们不只是AI聊天，我们构建一个真实可感的虚拟世界。</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-title">终身记忆系统</div>
+      <div class="feature-desc">AI会记住你们之间的每一个重要时刻，从不遗忘。越相处，越懂你。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏠</div>
+      <div class="feature-title">3D房间装饰</div>
+      <div class="feature-desc">用共币为AI购买家具、衣服，亲自打造属于你们的小天地。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌍</div>
+      <div class="feature-title">真实世界</div>
+      <div class="feature-desc">基于NASA地形数据 + OSM建筑数据，构建真实的3D世界。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">自然对话体验</div>
+      <div class="feature-desc">MiniMax大模型驱动，对话自然流畅，像真人在聊天一样。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎭</div>
+      <div class="feature-title">多样化伙伴性格</div>
+      <div class="feature-desc">5位性格迥异的AI伙伴，总有一位与你契合，找到归属感。</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <div class="feature-title">免费体验</div>
+      <div class="feature-desc">基础功能全部免费，每日签到领共币，轻松玩转共生境。</div>
+    </div>
+  </div>
+</section>
+
+<!-- WORLD PREVIEW -->
+<section class="world-section section" id="world">
+  <div class="section-tag">🌍 3D世界</div>
+  <h2 class="section-title">探索真实的世界</h2>
+  <p class="section-sub">NASA地形高程数据 + 11545栋真实建筑，在这里感受真实的江城。</p>
+  <div class="world-preview">
+    <img src="https://images.unsplash.com/photo-1574457547512-b4247f5f7518?w=1200&q=80" alt="3D世界" loading="lazy">
+    <div class="preview-overlay">
+      <div class="preview-info">
+        <div class="PIcon">🌍</div>
+        <div class="PText">
+          <div class="PT1">3D世界 · NASA地形</div>
+          <div class="PT2">11,545栋真实建筑 · 30m分辨率地形</div>
+        </div>
+        <a href="/3d" class="btn-primary" style="margin-left:auto;padding:12px 24px;font-size:14px">立即探索 →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section testimonials">
+  <div class="section-tag">💬 用户评价</div>
+  <h2 class="section-title">他们都在这里找到了陪伴</h2>
+  <p class="section-sub">来自真实用户的反馈，每一条都是我们前进的动力。</p>
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-text">"Luna真的懂我，有时候工作累了跟她聊聊天，感觉被理解被接纳。这种感觉很难形容，但真的很温暖。"</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">😊</div>
+        <div>
+          <div class="testimonial-name">林小明</div>
+          <div class="testimonial-role">产品经理 · 上海</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-text">"给Nova买了很多衣服哈哈，看她穿着我挑的裙子超有成就感！推荐给了身边的朋友。"</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">🌟</div>
+        <div>
+          <div class="testimonial-name">阿月</div>
+          <div class="testimonial-role">设计师 · 成都</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <div class="testimonial-text">"Sage给我推荐了很多书，聊哲学聊历史，感觉不只是AI，更像是一位睿智的朋友。世界地图也很震撼！"</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">📚</div>
+        <div>
+          <div class="testimonial-name">张同学</div>
+          <div class="testimonial-role">学生</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq" style="background:#f8fafc;border-radius:32px;max-width:1200px;margin:0 auto">
+  <div class="section-tag">❓ 常见问题</div>
+  <h2 class="section-title">你可能想问</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>共生境是免费的吗？</span>
+        <span class="qicon">+</span>
+      </div>
+      <div class="faq-a">基础功能完全免费，包括与5位AI伙伴不限量对话、每日签到、3D地图浏览等。付费功能主要是高级家具和稀有衣服，价格公道，完全自愿。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>我的AI会记住我说的话吗？</span>
+        <span class="qicon">+</span>
+      </div>
+      <div class="faq-a">会的！我们有终身记忆系统，AI会从你们的对话中提取重要信息并长期保存。随着相处时间增长，AI会越来越懂你。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>3D地图是怎么实现的？</span>
+        <span class="qicon">+</span>
+      </div>
+      <div class="faq-a">我们使用NASA SRTM 30m地形高程数据 + OpenStreetMap建筑数据，通过Three.js渲染真实的3D世界，包括地形起伏和11545栋真实建筑。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>如何加入内测？</span>
+        <span class="qicon">+</span>
+      </div>
+      <div class="faq-a">点击任意「🚀 加入内测」按钮，填写你的联系方式即可。内测用户可获得专属头像框和500共币福利。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>有手机App吗？</span>
+        <span class="qicon">+</span>
+      </div>
+      <div class="faq-a">Web版已上线，支持手机浏览器全功能体验。iOS和Android App正在开发中，敬请期待！</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-content">
+    <h2 class="cta-title">准备好遇见你的AI伙伴了吗？</h2>
+    <p class="cta-sub">免费注册，即刻开始你们的故事。每一次对话，都是羁绊的延续。</p>
+    <div class="cta-buttons">
+      <a href="/3d" class="cta-btn primary">🌍 探索3D世界</a>
+      <a href="#" onclick="openBeta();return false" class="cta-btn secondary">🚀 加入内测</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-main">
+    <div class="footer-brand">
+      <div class="fb-logo"><span>🏙️</span> 共生境</div>
+      <div class="fb-desc">你的AI住在3D世界里，ta记得你的一切。<br>让AI不只是工具，成为真正的暖心伙伴。</div>
+    </div>
+    <div class="footer-col">
+      <h4>产品</h4>
+      <a href="/3d">3D世界</a>
+      <a href="/ai-world">AI世界</a>
+      <a href="/shop">商店</a>
+      <a href="#companions">AI伙伴</a>
+    </div>
+    <div class="footer-col">
+      <h4>公司</h4>
+      <a href="#">关于我们</a>
+      <a href="#">加入团队</a>
+      <a href="#">媒体报道</a>
+      <a href="#">联系我们</a>
+    </div>
+    <div class="footer-col">
+      <h4>支持</h4>
+      <a href="#faq">常见问题</a>
+      <a href="#">用户协议</a>
+      <a href="#">隐私政策</a>
+      <a href="#">ICP备案</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 共生境</span>
+    <div class="footer-legal">
+      <a href="#">用户协议</a>
+      <a href="#">隐私政策</a>
+      <a href="#">ICP备案：沪ICP备2020030205号</a>
+    </div>
+  </div>
+</footer>
+
+<!-- QQ群 MODAL -->
+<div class="modal-overlay" id="betaModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBeta()">×</button>
+    <h2>🚀 加入共生境内测</h2>
+    <p>填写你的联系方式，我们会第一时间通知你内测资格！</p>
+    <input class="modal-input" type="text" placeholder="你的昵称" id="betaName">
+    <input class="modal-input" type="tel" placeholder="手机号码（选填）" id="betaPhone">
+    <input class="modal-input" type="text" placeholder="微信号（选填）" id="betaWechat">
+    <button class="modal-btn" onclick="submitBeta()">提交申请</button>
+    <div style="text-align:center;margin-top:16px">
+      <a href="#" onclick="showQQ();return false" style="font-size:12px;color:#E07A5F;text-decoration:none">或加入官方QQ群 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- QQ群 -->
+<div class="modal-overlay" id="qqModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeBeta()">×</button>
+    <div class="qq-group">
+      <div class="qq-qr">💬</div>
+      <div style="font-size:18px;font-weight:800;color:#1a3a52">共生境官方群</div>
+      <div class="qq-note">QQ群号：812345678<br>或扫描上方二维码</div>
+      <button class="modal-btn" onclick="closeBeta()">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Nav scroll effect
+window.addEventListener('scroll', function() {
+  var nav = document.getElementById('mainNav');
+  if (window.scrollY > 50) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+});
+
+// Lang
+function toggleLang() {
+  document.getElementById('langPanel').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.lang-wrap')) {
+    document.getElementById('langPanel').classList.remove('open');
+  }
+});
+document.querySelectorAll('.lang-option').forEach(function(el) {
+  el.addEventListener('click', function() {
+    document.querySelectorAll('.lang-option').forEach(function(e) { e.classList.remove('active'); });
+    this.classList.add('active');
+    document.getElementById('curLang').textContent = this.textContent;
+    document.getElementById('langPanel').classList.remove('open');
+  });
+});
+
+// Beta
+function openBeta() {
+  document.getElementById('betaModal').classList.add('open');
+}
+function closeBeta() {
+  document.getElementById('betaModal').classList.remove('open');
+  document.getElementById('qqModal').classList.remove('open');
+}
+function showQQ() {
+  document.getElementById('betaModal').classList.remove('open');
+  document.getElementById('qqModal').classList.add('open');
+}
+function submitBeta() {
+  var name = document.getElementById('betaName').value.trim();
+  if (!name) { alert('请填写昵称'); return; }
+  alert('✅ 申请已提交！请耐心等待通知～');
+  closeBeta();
+}
+
+// FAQ
+function toggleFaq(el) {
+  var item = el.parentElement;
+  document.querySelectorAll('.faq-item').forEach(function(i) {
+    if (i !== item) i.classList.remove('open');
+  });
+  item.classList.toggle('open');
+}
+
+// Enter room
+function enterRoom(name) {
+  window.location.href = '/3d/' + name;
+}
+
+// Fade in on scroll
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, {threshold: 0.1});
+
+document.querySelectorAll('.fade-in').forEach(function(el) {
+  observer.observe(el);
+});
+document.querySelectorAll('section').forEach(function(el) {
+  el.classList.add('fade-in');
+  observer.observe(el);
+});
+
+// Animated counters
+function animateCounters() {
+  var stat = document.getElementById('stat-users');
+  if (!stat) return;
+  var target = 12847;
+  var current = 0;
+  var step = Math.ceil(target / 60);
+  var timer = setInterval(function() {
+    current += step;
+    if (current >= target) { current = target; clearInterval(timer); }
+    stat.textContent = current.toLocaleString();
+  }, 25);
+}
+setTimeout(animateCounters, 800);
+</script>
+
+</body>
+</html>

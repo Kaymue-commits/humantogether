@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💼 机会大厅 · 共生境</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body,html{width:100%;height:100%;overflow:hidden;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+#bg{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,#0a0f1a 0%,#0d1825 40%,#1a2a3a 70%,#0d1f35 100%)}
+#webgl{position:fixed;inset:0;z-index:1}
+
+/* 体素森林 */
+.voxel-forest-overlay{position:fixed;bottom:0;left:0;right:0;height:200px;z-index:2;pointer-events:none;background:linear-gradient(to top,rgba(10,20,35,0.9) 0%,transparent 100%);}
+.forest-scene{position:absolute;bottom:0;left:0;right:0;height:180px;display:flex;justify-content:space-around;align-items:flex-end;padding:0 5%;}
+.voxel-house-sm{position:relative;width:60px;height:70px;}
+.vhouse-base{width:50px;height:35px;background:linear-gradient(135deg,#a0782c,#8b6914);position:absolute;bottom:12px;left:50%;transform:translateX(-50%);border-radius:3px;}
+.vhouse-roof{width:0;height:0;border-left:28px solid transparent;border-right:28px solid transparent;border-bottom:28px solid #2d5a3d;position:absolute;bottom:43px;left:50%;transform:translateX(-50%);}
+.vhouse-window{width:10px;height:12px;background:#ffd700;box-shadow:0 0 12px #ffd700,0 0 25px rgba(255,215,0,0.5);position:absolute;bottom:25px;left:50%;transform:translateX(-50%);border-radius:2px;}
+.vhouse-ground{width:56px;height:5px;background:#3d5a3d;position:absolute;bottom:5px;left:50%;transform:translateX(-50%);border-radius:2px;}
+.voxel-tree-sm{position:relative;width:35px;height:80px;}
+.vtree-trunk{width:8px;height:18px;background:#6b4423;position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-radius:2px;}
+.vtree-leaves{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);}
+.vtree-leaves::before{content:'';display:block;width:24px;height:24px;background:#2d6a3d;border-radius:3px;margin:0 auto;}
+.vtree-leaves::after{content:'';display:block;width:18px;height:18px;background:#3d8a4d;border-radius:3px;margin-top:-12px;margin-left:3px;}
+.vtree-top{width:12px;height:12px;background:#4da65d;border-radius:3px;position:absolute;bottom:38px;left:50%;transform:translateX(-50%);}
+.voxel-mountain-sm{position:relative;width:80px;height:90px;}
+.vmountain-body{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:40px solid transparent;border-right:40px solid transparent;border-bottom:80px solid #4a5568;}
+.vmountain-snow{position:absolute;bottom:55px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:25px solid #e8e8e8;}
+.vmountain-glow{position:absolute;bottom:55px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-bottom:28px solid rgba(255,255,255,0.1);}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:linear-gradient(135deg,#0a0f1a,#0d1b2a,#1a3040);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 1.5s;}
+#loading .icon{font-size:64px;animation:bounce 1.5s ease-in-out infinite}
+#loading .title{font-size:24px;font-weight:800;background:linear-gradient(135deg,#7ecbff,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;margin:14px 0 8px}
+#loading .subtitle{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px}
+#loading .bar{width:180px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden}
+#loading .bar div{height:100%;background:linear-gradient(90deg,#7ecbff,#ffd700);border-radius:2px;animation:loadBar 2.5s ease-out forwards}
+@keyframes loadBar{0%{width:0%}100%{width:100%}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* Top bar */
+#topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(10,15,26,0.88);backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 24px;z-index:100;box-shadow:0 2px 30px rgba(0,0,0,0.5);border-bottom:1px solid rgba(126,203,255,0.1);gap:16px;}
+.topbrand{font-size:18px;font-weight:900;background:linear-gradient(135deg,#7ecbff,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0;}
+#page-title{color:rgba(255,255,255,0.9);font-size:15px;font-weight:600;flex:1;text-align:center;letter-spacing:3px;}
+#opp-count{background:rgba(126,203,255,0.1);border:1px solid rgba(126,203,255,0.25);color:#7ecbff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;flex-shrink:0;}
+.topnav{display:flex;gap:12px;flex-shrink:0;}
+.topnav a{color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;font-weight:500;padding:6px 14px;border-radius:20px;border:1px solid transparent;transition:all 0.3s;}
+.topnav a:hover{color:#7ecbff;border-color:rgba(126,203,255,0.3);background:rgba(126,203,255,0.08);}
+
+/* Category strip */
+#cat-strip{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(10,15,26,0.9);border:1px solid rgba(126,203,255,0.15);border-radius:30px;padding:10px 20px;display:flex;gap:8px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 40px rgba(126,203,255,0.05);backdrop-filter:blur(20px);}
+.cat-btn{cursor:pointer;border-radius:20px;padding:8px 16px;display:flex;align-items:center;gap:6px;transition:all 0.3s;opacity:0.55;border:1px solid transparent;font-size:13px;font-weight:600;color:rgba(255,255,255,0.6);white-space:nowrap;}
+.cat-btn:hover,.cat-btn.active{opacity:1;background:rgba(126,203,255,0.1);border-color:rgba(126,203,255,0.35);color:#7ecbff;transform:translateY(-2px);}
+.cat-btn .cemoji{font-size:15px}
+
+/* Compass */
+#compass{position:fixed;top:76px;left:14px;background:rgba(10,15,26,0.9);border:1px solid rgba(126,203,255,0.2);border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;z-index:90;box-shadow:0 4px 16px rgba(0,0,0,0.3);cursor:pointer;transition:all 0.3s;}
+#compass:hover{border-color:rgba(126,203,255,0.5);box-shadow:0 4px 20px rgba(126,203,255,0.2);}
+#compass .carrow{font-size:20px;transition:transform 0.3s}
+
+/* Back link */
+#backlink{position:fixed;top:76px;left:72px;background:rgba(10,15,26,0.9);border:1px solid rgba(126,203,255,0.2);border-radius:20px;padding:7px 16px;font-size:12px;color:#7ecbff;text-decoration:none;font-weight:600;z-index:90;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:all 0.3s;}
+#backlink:hover{border-color:rgba(126,203,255,0.5);background:rgba(126,203,255,0.08)}
+
+/* Post button */
+#post-btn{position:fixed;top:76px;right:14px;background:linear-gradient(135deg,#7ecbff,#4a9eff);border:none;border-radius:22px;padding:9px 20px;font-size:13px;font-weight:800;color:#0a0f1a;cursor:pointer;z-index:90;box-shadow:0 4px 16px rgba(126,203,255,0.3);text-decoration:none;transition:all 0.3s;}
+#post-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(126,203,255,0.4)}
+
+/* Hint */
+#hint{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.3);font-size:12px;z-index:80;text-align:center;pointer-events:none;}
+
+/* Detail panel */
+#detail-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(540px,92vw);background:rgba(10,15,26,0.97);border:1px solid rgba(126,203,255,0.2);border-radius:24px;padding:30px;z-index:200;display:none;box-shadow:0 25px 70px rgba(0,0,0,0.6),0 0 50px rgba(126,203,255,0.05);backdrop-filter:blur(25px);max-height:82vh;overflow-y:auto;}
+#detail-panel.show{display:block;animation:panelIn 0.35s ease-out}
+@keyframes panelIn{0%{opacity:0;transform:translate(-50%,-50%) scale(0.92)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#detail-panel .dp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+#detail-panel .dp-title{font-size:20px;font-weight:800;color:#fff;line-height:1.4;flex:1;padding-right:16px}
+#detail-panel .dp-badge{background:rgba(126,203,255,0.1);border:1px solid rgba(126,203,255,0.25);color:#7ecbff;border-radius:16px;padding:4px 12px;font-size:11px;font-weight:700;flex-shrink:0;}
+#detail-panel .dp-meta{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap}
+#detail-panel .dp-desc{font-size:14px;color:rgba(255,255,255,0.75);line-height:1.8;margin-bottom:18px;white-space:pre-wrap;background:rgba(255,255,255,0.03);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);}
+#detail-panel .dp-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+#detail-panel .dp-tag{background:rgba(126,203,255,0.08);border:1px solid rgba(126,203,255,0.2);color:#7ecbff;border-radius:14px;padding:4px 12px;font-size:12px;font-weight:600;}
+#detail-panel .dp-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.06)}
+#detail-panel .dp-reward{font-size:18px;font-weight:800;background:linear-gradient(135deg,#7ecbff,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+#detail-panel .dp-actions{display:flex;gap:10px}
+#detail-panel .dp-close{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);border-radius:14px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;}
+#detail-panel .dp-close:hover{background:rgba(255,255,255,0.1);color:#fff}
+#detail-panel .dp-apply{background:linear-gradient(135deg,#7ecbff,#4a9eff);border:none;color:#0a0f1a;border-radius:14px;padding:10px 26px;cursor:pointer;font-size:14px;font-weight:800;box-shadow:0 4px 16px rgba(126,203,255,0.3);transition:all 0.2s;}
+#detail-panel .dp-apply:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(126,203,255,0.4)}
+#dp-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;display:none}
+#dp-overlay.show{display:block}
+
+/* Hover card */
+#hover-card{position:fixed;background:rgba(10,15,26,0.95);border:1px solid rgba(126,203,255,0.25);border-radius:14px;padding:12px 16px;z-index:150;display:none;pointer-events:none;max-width:220px;box-shadow:0 10px 30px rgba(0,0,0,0.5);backdrop-filter:blur(15px);}
+#hover-card .hc-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:5px}
+#hover-card .hc-meta{font-size:12px;color:rgba(255,255,255,0.5)}
+
+/* Floating labels */
+#floating-labels{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
+.flabel{position:absolute;padding:6px 14px;background:rgba(10,15,26,0.85);border:1px solid rgba(126,203,255,0.25);border-radius:8px;font-size:12px;color:#7ecbff;font-weight:600;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:flabelPulse 3s ease-in-out infinite;}
+@keyframes flabelPulse{0%,100%{box-shadow:0 4px 16px rgba(0,0,0,0.3),0 0 12px rgba(126,203,255,0.15)}50%{box-shadow:0 4px 20px rgba(0,0,0,0.4),0 0 20px rgba(126,203,255,0.25)}}
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<canvas id="webgl"></canvas>
+
+<!-- 体素森林背景 -->
+<div class="voxel-forest-overlay">
+  <div class="forest-scene">
+    <div class="voxel-mountain-sm"><div class="vmountain-glow"></div><div class="vmountain-body"></div><div class="vmountain-snow"></div></div>
+    <div class="voxel-tree-sm"><div class="vtree-trunk"></div><div class="vtree-leaves"></div><div class="vtree-top"></div></div>
+    <div class="voxel-tree-sm" style="transform:scale(0.8)"><div class="vtree-trunk"></div><div class="vtree-leaves"></div><div class="vtree-top"></div></div>
+    <div class="voxel-house-sm"><div class="vhouse-roof"></div><div class="vhouse-base"></div><div class="vhouse-window"></div><div class="vhouse-ground"></div></div>
+    <div class="voxel-tree-sm"><div class="vtree-trunk"></div><div class="vtree-leaves"></div><div class="vtree-top"></div></div>
+    <div class="voxel-mountain-sm" style="transform:scale(0.7)"><div class="vmountain-glow"></div><div class="vmountain-body"></div><div class="vmountain-snow"></div></div>
+    <div class="voxel-tree-sm" style="transform:scale(1.1)"><div class="vtree-trunk"></div><div class="vtree-leaves"></div><div class="vtree-top"></div></div>
+    <div class="voxel-house-sm" style="transform:scale(0.9)"><div class="vhouse-roof"></div><div class="vhouse-base"></div><div class="vhouse-window"></div><div class="vhouse-ground"></div></div>
+    <div class="voxel-tree-sm"><div class="vtree-trunk"></div><div class="vtree-leaves"></div><div class="vtree-top"></div></div>
+    <div class="voxel-mountain-sm" style="transform:scale(0.85)"><div class="vmountain-glow"></div><div class="vmountain-body"></div><div class="vmountain-snow"></div></div>
+  </div>
+</div>
+
+<!-- Floating labels -->
+<div id="floating-labels">
+  <div class="flabel" style="top:25%;left:8%;animation-delay:0s">🌲 共生境</div>
+  <div class="flabel" style="top:35%;right:6%;animation-delay:1s">💎 机会大厅</div>
+  <div class="flabel" style="top:55%;left:4%;animation-delay:2s">🤝 合作共赢</div>
+  <div class="flabel" style="top:20%;right:12%;animation-delay:0.5s">✨ 探索未来</div>
+</div>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="icon">💼</div>
+  <div class="title">机会大厅</div>
+  <div class="subtitle">正在加载 3D 世界...</div>
+  <div class="bar"><div></div></div>
+</div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div class="topbrand">🤝 共生境</div>
+  <div id="page-title">💼 机会大厅</div>
+  <div id="opp-count">-- 个机会</div>
+  <nav class="topnav">
+    <a href="/">首页</a>
+    <a href="/opportunities">机会</a>
+    <a href="/companions">伙伴</a>
+  </nav>
+</div>
+
+<a href="/" id="backlink">← 返回</a>
+<a href="/post_opportunity" id="post-btn">+ 发布机会</a>
+
+<div id="compass" onclick="resetCamera()"><div class="carrow" id="carrow">⬆️</div></div>
+
+<div id="hint">👆 拖动旋转 · 🔍 滚轮缩放 · 点击看板查看详情</div>
+
+<div id="dp-overlay" onclick="closeDetail()"></div>
+
+<div id="detail-panel">
+  <div class="dp-header">
+    <div class="dp-title" id="dp-title"></div>
+    <div class="dp-badge" id="dp-badge"></div>
+  </div>
+  <div class="dp-meta" id="dp-meta"></div>
+  <div class="dp-desc" id="dp-desc"></div>
+  <div class="dp-tags" id="dp-tags"></div>
+  <div class="dp-footer">
+    <div class="dp-reward" id="dp-reward"></div>
+    <div class="dp-actions">
+      <button class="dp-close" onclick="closeDetail()">关闭</button>
+      <button class="dp-apply" id="dp-apply-btn" onclick="applyOpp()">📩 申请</button>
+    </div>
+  </div>
+</div>
+
+<div id="hover-card">
+  <div class="hc-title" id="hc-title"></div>
+  <div class="hc-meta" id="hc-meta"></div>
+</div>
+
+<div id="cat-strip">
+  <div class="cat-btn active" onclick="filterCat('all',this)"><span class="cemoji">🌐</span>全部</div>
+  <div class="cat-btn" onclick="filterCat('工作',this)"><span class="cemoji">💼</span>工作</div>
+  <div class="cat-btn" onclick="filterCat('项目',this)"><span class="cemoji">📁</span>项目</div>
+  <div class="cat-btn" onclick="filterCat('合作',this)"><span class="cemoji">🤝</span>合作</div>
+  <div class="cat-btn" onclick="filterCat('培训',this)"><span class="cemoji">🎓</span>培训</div>
+  <div class="cat-btn" onclick="filterCat('志愿者',this)"><span class="cemoji">❤️</span>志愿者</div>
+  <div class="cat-btn" onclick="filterCat('其他',this)"><span class="cemoji">📌</span>其他</div>
+</div>
+
+<script src="/static/js/three.min.js"></script>
+<script src="/static/js/OrbitControls.js"></script>
+<script>
+var opportunities = {{ opportunities_json | safe }};
+
+var currentCat = 'all';
+var scene, camera, renderer, controls;
+var cardGroup;
+var cardMeshes = [];
+var clock = new THREE.Clock();
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+var selectedOppId = null;
+var glowLights = [];
+
+// 看板尺寸（正面朝用户）
+var CARD_W = 300, CARD_H = 200;
+
+function init() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0f1a);
+  scene.fog = new THREE.FogExp2(0x0a1525, 0.00035);
+
+  camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 10, 50000);
+  camera.position.set(0, 280, 1300);
+  camera.lookAt(0, 80, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('webgl'), antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.maxPolarAngle = Math.PI / 1.85;
+  controls.minDistance = 400;
+  controls.maxDistance = 4500;
+  controls.target.set(0, 80, 0);
+  controls.addEventListener('change', updateCompass);
+
+  setupLighting();
+  buildScene();
+  addStars();
+  addGlowElements();
+
+  window.addEventListener('resize', onResize);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('click', onClick);
+
+  animate();
+
+  document.getElementById('opp-count').textContent = opportunities.length + ' 个机会';
+
+  setTimeout(function() {
+    document.getElementById('loading').style.opacity = '0';
+    setTimeout(function() { document.getElementById('loading').style.display = 'none'; }, 1500);
+  }, 2200);
+}
+
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function setupLighting() {
+  scene.add(new THREE.AmbientLight(0x1a2a4a, 0.9));
+  var dir = new THREE.DirectionalLight(0xffeedd, 1.3);
+  dir.position.set(600, 1200, 600);
+  dir.castShadow = true;
+  dir.shadow.mapSize.width = 2048;
+  dir.shadow.mapSize.height = 2048;
+  scene.add(dir);
+  scene.add(new THREE.HemisphereLight(0x0d1b3e, 0x7ecbff, 0.4));
+  var pl1 = new THREE.PointLight(0x7ecbff, 0.8, 2000);
+  pl1.position.set(-400, 300, 200);
+  scene.add(pl1);
+  var pl2 = new THREE.PointLight(0xffd700, 0.6, 1500);
+  pl2.position.set(400, 200, -300);
+  scene.add(pl2);
+}
+
+function addStars() {
+  var geo = new THREE.BufferGeometry();
+  var count = 2500;
+  var positions = new Float32Array(count * 3);
+  var colors = new Float32Array(count * 3);
+  for (var i = 0; i < count * 3; i += 3) {
+    positions[i] = (Math.random() - 0.5) * 35000;
+    positions[i + 1] = Math.random() * 8000 + 1500;
+    positions[i + 2] = (Math.random() - 0.5) * 35000;
+    var c = new THREE.Color();
+    c.setHSL(Math.random() * 0.15 + 0.55, 0.6, 0.8);
+    colors[i] = c.r; colors[i + 1] = c.g; colors[i + 2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({color:0xFFFFFF,size:3.5,sizeAttenuation:true,transparent:true,opacity:0.8,vertexColors:true})));
+}
+
+function addGlowElements() {
+  var glowColors = [0x7ecbff, 0xffd700, 0xff7eb3, 0x4d9a5d];
+  for (var i = 0; i < 15; i++) {
+    var r = Math.random() * 2000 + 500;
+    var theta = Math.random() * Math.PI * 2;
+    var phi = Math.random() * Math.PI * 0.4 + 0.1;
+    var geo = new THREE.SphereGeometry(Math.random() * 20 + 8, 16, 16);
+    var mat = new THREE.MeshBasicMaterial({color:glowColors[Math.floor(Math.random() * glowColors.length)],transparent:true,opacity:0.15+Math.random()*0.1,blending:THREE.AdditiveBlending});
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(r*Math.sin(phi)*Math.cos(theta), r*Math.cos(phi)+100, r*Math.sin(phi)*Math.sin(theta));
+    mesh.userData = {origPos: mesh.position.clone(), floatSpeed: Math.random()*0.3+0.2, floatOffset: Math.random()*Math.PI*2, rotSpeed: (Math.random()-0.5)*0.01};
+    glowLights.push(mesh);
+    scene.add(mesh);
+  }
+}
+
+// ── SCENE BUILD ───────────────────────────────────────
+function buildScene() {
+  if (cardGroup) {
+    scene.remove(cardGroup);
+    cardGroup.traverse(function(obj) {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach(function(m) { if (m.map) m.map.dispose(); m.dispose(); });
+        else { if (obj.material.map) obj.material.map.dispose(); obj.material.dispose(); }
+      }
+    });
+  }
+  cardGroup = new THREE.Group();
+  scene.add(cardGroup);
+
+  var filtered = currentCat === 'all' ? opportunities : opportunities.filter(function(o) { return o.category === currentCat; });
+
+  var cols = 3;
+  var rows = Math.ceil(filtered.length / cols);
+  var totalW = cols * (CARD_W + 180) - 180;
+  var totalD = rows * (CARD_H + 200) - 200;
+
+  filtered.forEach(function(opp, i) {
+    var col = i % cols;
+    var row = Math.floor(i / cols);
+    var x = col * (CARD_W + 180) - totalW / 2 + CARD_W / 2;
+    var z = row * (CARD_H + 200) - totalD / 2 + CARD_H / 2;
+
+    var mesh = createOppCard(opp);
+    mesh.position.set(x, 0, z);
+    mesh.userData = opp;
+    cardGroup.add(mesh);
+    cardMeshes.push(mesh);
+  });
+}
+
+// ── 站立式看板（正面朝向相机）───────────────────────────
+function createOppCard(opp) {
+  var group = new THREE.Group();
+
+  // 发光底座
+  var glowBase = new THREE.Mesh(
+    new THREE.PlaneGeometry(CARD_W + 30, 50),
+    new THREE.MeshBasicMaterial({color:0x7ecbff,transparent:true,opacity:0.07,blending:THREE.AdditiveBlending})
+  );
+  glowBase.position.y = 2;
+  glowBase.rotation.x = -Math.PI / 2;
+  group.add(glowBase);
+
+  // 看板支架
+  var poleGeo = new THREE.BoxGeometry(6, 100, 6);
+  var poleMat = new THREE.MeshStandardMaterial({color:0x3a4a5a, metalness:0.5, roughness:0.5});
+  var pole = new THREE.Mesh(poleGeo, poleMat);
+  pole.position.y = -45;
+  pole.castShadow = true;
+  group.add(pole);
+
+  // 看板主体（Plane默认就是朝上的，需要旋转让它面向前）
+  var catColors = {'工作':0x1a3a6a,'项目':0x1a5a3a,'合作':0x4a1a6a,'培训':0x6a4a1a,'志愿者':0x6a1a3a,'其他':0x2a3a4a};
+  var catColor = catColors[opp.category] || 0x1a2a3a;
+
+  var cardGeo = new THREE.PlaneGeometry(CARD_W, CARD_H);
+  var cardMat = new THREE.MeshStandardMaterial({color:catColor, metalness:0.2, roughness:0.8, side:THREE.DoubleSide});
+  var card = new THREE.Mesh(cardGeo, cardMat);
+  card.position.y = 25;
+  // 旋转X轴让看板从水平变成直立（面向相机）
+  // PlaneGeometry默认在XY平面上，旋转 -PI/2 让它朝向-Z（相机方向）
+  card.rotation.x = -Math.PI / 2;
+  card.castShadow = true;
+  group.add(card);
+
+  // 顶部发光条
+  var topBorder = new THREE.Mesh(
+    new THREE.PlaneGeometry(CARD_W, 5),
+    new THREE.MeshBasicMaterial({color:0x7ecbff, transparent:true, opacity:0.9})
+  );
+  topBorder.position.y = 25 + CARD_H/2 - 2;
+  topBorder.rotation.x = -Math.PI / 2;
+  group.add(topBorder);
+
+  // 底部金色发光条
+  var bottomBorder = new THREE.Mesh(
+    new THREE.PlaneGeometry(CARD_W, 4),
+    new THREE.MeshBasicMaterial({color:0xffd700, transparent:true, opacity:0.5, blending:THREE.AdditiveBlending})
+  );
+  bottomBorder.position.y = 25 - CARD_H/2 + 2;
+  bottomBorder.rotation.x = -Math.PI / 2;
+  group.add(bottomBorder);
+
+  // 左侧发光边
+  var leftBorder = new THREE.Mesh(
+    new THREE.PlaneGeometry(4, CARD_H),
+    new THREE.MeshBasicMaterial({color:0x7ecbff, transparent:true, opacity:0.6})
+  );
+  leftBorder.position.y = 25;
+  leftBorder.position.x = -CARD_W/2 + 2;
+  leftBorder.rotation.x = -Math.PI / 2;
+  group.add(leftBorder);
+
+  // 右侧发光边
+  var rightBorder = new THREE.Mesh(
+    new THREE.PlaneGeometry(4, CARD_H),
+    new THREE.MeshBasicMaterial({color:0x7ecbff, transparent:true, opacity:0.6})
+  );
+  rightBorder.position.y = 25;
+  rightBorder.position.x = CARD_W/2 - 2;
+  rightBorder.rotation.x = -Math.PI / 2;
+  group.add(rightBorder);
+
+  // 状态徽章
+  var badgeColor = opp.status === '进行中' ? 0x00cc66 : 0x888888;
+  var badge = new THREE.Mesh(
+    new THREE.PlaneGeometry(70, 22),
+    new THREE.MeshBasicMaterial({color:badgeColor, transparent:true, opacity:0.9})
+  );
+  badge.position.y = 25 + CARD_H/2 - 35;
+  badge.position.x = CARD_W/2 - 45;
+  badge.rotation.x = -Math.PI / 2;
+  group.add(badge);
+
+  // 文字 - 标题（朝向相机，不旋转）
+  var title = makeTextFace(opp.title || '无标题', 26, 0xFFFFFF, true);
+  title.position.y = 25 + CARD_H/2 - 30;
+  title.position.x = -CARD_W/2 + 16;
+  group.add(title);
+
+  // 文字 - 分类和位置
+  var meta1 = makeTextFace((opp.category || '其他') + '  ·  📍' + (opp.location || '线上'), 17, 0x99ccff, false);
+  meta1.position.y = 25 + 5;
+  meta1.position.x = -CARD_W/2 + 16;
+  group.add(meta1);
+
+  // 文字 - 用户名
+  var meta2 = makeTextFace((opp.user_name || '匿名') + '  ·  ' + String(opp.created_at || '').slice(0, 10), 15, 0x778899, false);
+  meta2.position.y = 25 - 20;
+  meta2.position.x = -CARD_W/2 + 16;
+  group.add(meta2);
+
+  // 文字 - 描述预览
+  var descText = String(opp.description || '').slice(0, 55) + (String(opp.description || '').length > 55 ? '...' : '');
+  var desc = makeTextFace(descText, 14, 0x99aabb, false);
+  desc.position.y = 25 - 45;
+  desc.position.x = -CARD_W/2 + 16;
+  group.add(desc);
+
+  // 文字 - 奖励
+  var rewardText = '💰 ' + (opp.reward || '面议');
+  var reward = makeTextFace(rewardText, 20, 0xffd700, true);
+  reward.position.y = 25 - CARD_H/2 + 25;
+  reward.position.x = -CARD_W/2 + 16;
+  group.add(reward);
+
+  // 文字 - 点击提示
+  var hintText = '点击查看 →';
+  var hint = makeTextFace(hintText, 14, 0x7ecbff, false);
+  hint.position.y = 25 - CARD_H/2 + 25;
+  hint.position.x = CARD_W/2 - 80;
+  group.add(hint);
+
+  return group;
+}
+
+// 创建面向相机的文字（Plane，不旋转X轴）
+function makeTextFace(str, size, color, bold) {
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  var fontSize = size;
+  var font = (bold ? 'Bold ' : '') + fontSize + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+  ctx.font = font;
+  var metrics = ctx.measureText(str);
+  var w = Math.ceil(metrics.width) + 20;
+  var h = Math.ceil(fontSize * 1.6);
+  canvas.width = w;
+  canvas.height = h;
+  ctx.font = font;
+  ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+  ctx.textBaseline = 'top';
+  ctx.fillText(str, 0, 0);
+  var texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  texture.minFilter = THREE.LinearFilter;
+  var geo = new THREE.PlaneGeometry(w * 0.55, h * 0.55);
+  var mat = new THREE.MeshBasicMaterial({map:texture, transparent:true, side:THREE.DoubleSide});
+  var mesh = new THREE.Mesh(geo, mat);
+  // 不旋转！保持面向相机
+  return mesh;
+}
+
+// ── ANIMATE ────────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate);
+  var t = clock.getElapsedTime();
+
+  cardMeshes.forEach(function(mesh, i) {
+    mesh.position.y = Math.sin(t * 0.7 + i * 0.4) * 8;
+  });
+
+  glowLights.forEach(function(g) {
+    g.position.y = g.userData.origPos.y + Math.sin(t * g.userData.floatSpeed + g.userData.floatOffset) * 30;
+    g.rotation.y += g.userData.rotSpeed;
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+function updateCompass() {
+  var heading = Math.atan2(camera.position.x, camera.position.z);
+  var deg = (heading * 180 / Math.PI + 360) % 360;
+  var arrow = document.getElementById('carrow');
+  if (arrow) arrow.style.transform = 'rotate(' + deg + 'deg)';
+}
+
+function resetCamera() {
+  camera.position.set(0, 280, 1300);
+  controls.target.set(0, 80, 0);
+  controls.update();
+}
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  cardMeshes = [];
+  buildScene();
+  var cnt = (currentCat === 'all' ? opportunities : opportunities.filter(function(o) { return o.category === currentCat; })).length;
+  document.getElementById('opp-count').textContent = cnt + ' 个机会';
+}
+
+function onMouseMove(e) {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  var intersects = raycaster.intersectObjects(cardGroup.children, true);
+  var hoverCard = document.getElementById('hover-card');
+  if (intersects.length > 0) {
+    var opp = findOppFromMesh(intersects[0].object);
+    if (opp) {
+      hoverCard.style.display = 'block';
+      hoverCard.style.left = (e.clientX + 16) + 'px';
+      hoverCard.style.top = (e.clientY - 10) + 'px';
+      document.getElementById('hc-title').textContent = opp.title || '无标题';
+      document.getElementById('hc-meta').textContent = (opp.category || '其他') + '  ·  ' + (opp.location || '线上');
+      document.body.style.cursor = 'pointer';
+      return;
+    }
+  }
+  hoverCard.style.display = 'none';
+  document.body.style.cursor = 'default';
+}
+
+function findOppFromMesh(obj) {
+  var group = obj;
+  while (group) {
+    if (group.userData && group.userData.id !== undefined) return group.userData;
+    group = group.parent;
+  }
+  return null;
+}
+
+function onClick(e) {
+  if (e.target.closest('#cat-strip') || e.target.closest('#backlink') || e.target.closest('#post-btn') || e.target.closest('#compass') || e.target.closest('#detail-panel') || e.target.closest('#dp-overlay')) return;
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  var intersects = raycaster.intersectObjects(cardGroup.children, true);
+  if (intersects.length > 0) {
+    var opp = findOppFromMesh(intersects[0].object);
+    if (opp) showDetail(opp);
+  }
+}
+
+function showDetail(opp) {
+  selectedOppId = opp.id;
+  document.getElementById('dp-title').textContent = opp.title || '无标题';
+  document.getElementById('dp-badge').textContent = opp.category || '其他';
+  document.getElementById('dp-meta').innerHTML = '📍 ' + (opp.location || '线上') + '  &nbsp;·&nbsp;  👤 ' + (opp.user_name || '匿名') + '  &nbsp;·&nbsp;  🕐 ' + String(opp.created_at || '').slice(0, 10);
+  document.getElementById('dp-desc').textContent = opp.description || '暂无描述';
+  document.getElementById('dp-reward').textContent = '💰 ' + (opp.reward || '面议');
+  var tagsEl = document.getElementById('dp-tags');
+  tagsEl.innerHTML = '';
+  if (opp.tags) {
+    String(opp.tags).split(',').forEach(function(tag) {
+      tag = tag.trim();
+      if (tag) {
+        var span = document.createElement('span');
+        span.className = 'dp-tag';
+        span.textContent = tag;
+        tagsEl.appendChild(span);
+      }
+    });
+  }
+  document.getElementById('dp-overlay').classList.add('show');
+  document.getElementById('detail-panel').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('dp-overlay').classList.remove('show');
+  document.getElementById('detail-panel').classList.remove('show');
+  selectedOppId = null;
+}
+
+function applyOpp() {
+  if (!selectedOppId) return;
+  window.location.href = '/apply_opportunity/' + selectedOppId;
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
